@@ -29,16 +29,21 @@
             const password = document.getElementById('password').value;
 
             // Fetch API를 사용하여 비동기 POST 요청
-            fetch('/login', {
+            fetch('/.netlify/functions/login', { // Netlify Functions 경로로 변경
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ username, password })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('네트워크 응답이 정상이 아닙니다.');
+                }
+                return response.json();
+            })
             .then(data => {
-                if (data.message) {
+                if (data.message && data.message !== '로그인 성공') {
                     // 서버에서 오류 메시지를 받은 경우
                     document.getElementById('error-message').textContent = data.message;
                     document.getElementById('error-message').style.display = 'block';
