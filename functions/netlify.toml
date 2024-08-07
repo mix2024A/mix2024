@@ -1,0 +1,2 @@
+echo [build] > netlify.toml
+echo '  functions = "functions"' >> netlify.toml
