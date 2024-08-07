@@ -1,0 +1,19 @@
+{
+	"geolocation": {
+		"data": {
+			"city": "Gwanak-gu",
+			"country": {
+				"code": "KR",
+				"name": "South Korea"
+			},
+			"subdivision": {
+				"code": "11",
+				"name": "Seoul"
+			},
+			"timezone": "Asia/Seoul",
+			"latitude": 37.4873,
+			"longitude": 126.9227
+		},
+		"timestamp": 1723036708792
+	}
+}

@@ -1,0 +1,264 @@
+/* 공통 스타일 */
+body {
+    font-family: 'Noto Sans KR', sans-serif; /* 기본 폰트 설정 */
+    background-color: #f4f4f9; /* 전체 배경색 */
+    margin: 0;
+    padding: 0;
+    color: #333; /* 기본 글자 색상 */
+}
+
+.container {
+    max-width: 1200px; /* 최대 너비 */
+    margin: 0 auto; /* 가운데 정렬 */
+    padding: 20px;
+    background-color: #ffffff; /* 박스 배경색 */
+    border-radius: 10px; /* 모서리 둥글게 */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* 그림자 */
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333; /* 제목 색상 */
+    font-size: 24px;
+}
+
+/* 헤더 스타일 */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #333; /* 헤더 배경색 */
+    color: white; /* 헤더 글자 색상 */
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+header .logo h1 {
+    margin: 0;
+    font-size: 1.5em;
+}
+
+header nav ul {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+    padding: 0;
+    margin: 0;
+}
+
+header nav a {
+    color: white; /* 링크 글자 색상 */
+    text-decoration: none; /* 링크 밑줄 없애기 */
+    padding: 8px 15px;
+    transition: background-color 0.3s;
+}
+
+header nav a:hover {
+    background-color: rgba(255, 255, 255, 0.2); /* 호버 시 배경색 */
+    border-radius: 5px; /* 호버 시 모서리 둥글게 */
+}
+
+/* 로그인 페이지 스타일 */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #e9ecef; /* 로그인 페이지 배경색 */
+}
+
+.login-box {
+    width: 100%;
+    max-width: 350px;
+    padding: 40px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+}
+
+.login-box label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #333;
+}
+
+.login-box input[type="text"],
+.login-box input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.login-box button {
+    width: 100%;
+    padding: 12px;
+    background-color: #007bff; /* 버튼 배경색 */
+    color: white; /* 버튼 글자 색상 */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.login-box button:hover {
+    background-color: #0056b3; /* 호버 시 버튼 배경색 */
+}
+
+/* 관리자 페이지 스타일 */
+.admin-content {
+    margin-top: 30px;
+}
+
+.admin-content h3 {
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 20px;
+}
+
+.admin-content form {
+    margin-bottom: 40px;
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-content form label {
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #333;
+}
+
+.admin-content input[type="text"],
+.admin-content input[type="password"],
+.admin-content select {
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.admin-content button {
+    padding: 10px;
+    background-color: #0056b3;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.admin-content button:hover {
+    background-color: #218838; /* 호버 시 버튼 배경색 */
+}
+
+.admin-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.admin-content th,
+.admin-content td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+}
+
+.admin-content th {
+    background-color: #f2f2f2; /* 테이블 헤더 배경색 */
+    font-weight: bold;
+}
+
+.admin-content tr:hover {
+    background-color: #f9f9f9; /* 테이블 행 호버 시 배경색 */
+}
+
+/* 메인 페이지 스타일 */
+.keyword-section {
+    margin-top: 30px;
+}
+
+.keyword-section .summary {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    font-size: 16px;
+    color: #333;
+}
+
+.keyword-section .keyword-search {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+}
+
+.keyword-section input[type="text"] {
+    width: 300px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+
+.keyword-section button {
+    padding: 8px 15px;
+    background-color: #007bff; /* 버튼 배경색 */
+    color: white; /* 버튼 글자 색상 */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.keyword-section button:hover {
+    background-color: #0056b3; /* 호버 시 버튼 배경색 */
+}
+
+.keyword-section table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.keyword-section th,
+.keyword-section td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+}
+
+.keyword-section th {
+    background-color: #f2f2f2; /* 테이블 헤더 배경색 */
+    font-weight: bold;
+}
+
+.keyword-section tr:hover {
+    background-color: #f9f9f9; /* 테이블 행 호버 시 배경색 */
+}
+
+/* 메인 헤더 */
+.main-header {
+    background-color: #0056b3; /* 헤더 배경색 */
+    color: white; /* 헤더 글자 색상 */
+    padding: 20px 0;
+    text-align: center;
+}
+
+.main-header .logo {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.main-header h1 {
+    font-size: 2em;
+    margin: 0;
+}
+
+.main-header p {
+    font-size: 1em;
+    margin: 5px 0;
+}
