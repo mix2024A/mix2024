@@ -1,8 +1,0 @@
-[build]
-  functions = "functions"
-
-[[redirects]]
-  from = "/login"
-  to = "/.netlify/functions/login"
-  status = 200
-  force = true

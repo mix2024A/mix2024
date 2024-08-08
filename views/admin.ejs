@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 페이지</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="admin-container">
+        <h2>계정 생성</h2>
+        <form action="/create-account" method="POST">
+            <label for="username">아이디</label>
+            <input type="text" name="username" placeholder="아이디를 입력하세요" required>
+            <label for="password">비밀번호</label>
+            <input type="password" name="password" placeholder="비밀번호를 입력하세요" required>
+            <label for="isAdmin">관리자 권한</label>
+            <input type="checkbox" name="isAdmin">
+            <button type="submit">계정 생성</button>
+        </form>
+        <% if (message) { %>
+        <p><%= message %></p>
+        <% } %>
+    </div>
+</body>
+</html>
