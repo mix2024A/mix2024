@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>메인 페이지</title>
+    <link rel="stylesheet" href="styles/styles.css">
+</head>
+<body>
+    <div class="navbar">
+        <span>Auto Suggest</span>
+        <div class="navbar-right">
+            <a href="admin.html">관리자 페이지</a>
+            <a href="login.html">로그아웃</a>
+        </div>
+    </div>
+    <main>
+        <div class="table-container">
+            <h2>메인 페이지</h2>
+            <div class="keyword-inputs">
+                <input type="text" id="companyNameInput" placeholder="업체명">
+                <input type="text" id="keywordInput" placeholder="검색어">
+                <input type="text" id="exposureInput" placeholder="노출 키워드">
+                <input type="date" id="startDateInput" placeholder="2024/01/01">
+                <input type="text" id="omitDateInput" placeholder="누락일">
+                <input type="text" id="noteInput" placeholder="비고">
+                <button id="registerButton">등록</button>
+            </div>
+            <div class="keyword-search">
+                <input type="text" id="searchKeyword" placeholder="검색어">
+                <input type="text" id="searchExposure" placeholder="노출 키워드">
+                <button id="searchButton" onclick="searchKeyword()">검색</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>업체명</th>
+                        <th>순위</th>
+                        <th>검색어</th>
+                        <th>노출 키워드</th>
+                        <th>시작 날짜</th>
+                        <th>누락일</th>
+                        <th>상태</th>
+                        <th>메모</th>
+                        <th>관리</th>
+                    </tr>
+                </thead>
+                <tbody id="keywordList">
+                    <!-- 데이터가 여기 추가됩니다 -->
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- 삭제 모달 -->
+    <div id="customModal" class="modal">
+        <div class="modal-content">
+            <p id="modalText"></p>
+            <div class="modal-buttons">
+                <button id="confirmButton">확인</button>
+                <button id="cancelButton">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 수정 모달 -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h3>키워드 수정</h3>
+            <label for="editCompanyName">업체명</label>
+            <input type="text" id="editCompanyName">
+            <label for="editKeyword">검색어</label>
+            <input type="text" id="editKeyword">
+            <label for="editExposure">노출 키워드</label>
+            <input type="text" id="editExposure">
+            <label for="editStartDate">시작 날짜</label>
+            <input type="date" id="editStartDate" placeholder="2024/01/01">
+            <label for="editOmitDate">누락일</label>
+            <input type="text" id="editOmitDate">
+            <label for="editNote">메모</label>
+            <input type="text" id="editNote">
+            <div class="modal-buttons">
+                <button id="saveButton" class="modal-save-button">저장</button>
+                <button id="closeEditButton" class="modal-cancel-button">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="scripts/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>로그인 페이지</title>
+    <link rel="stylesheet" href="styles/styles.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar"></nav>
+    </header>
+    <main>
+        <section class="login-section">
+            <h1>로그인</h1>
+            <form id="loginForm">
+                <label for="loginUsername"><b>아이디</b></label>
+                <input type="text" id="loginUsername" name="loginUsername" required>
+                <label for="loginPassword"><b>비밀번호</b></label>
+                <input type="password" id="loginPassword" name="loginPassword" required>
+                <button type="submit">로그인</button>
+                <p id="loginError" class="error"></p>
+            </form>
+        </section>
+    </main>
+    <script src="scripts/login.js"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            login();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>관리자 페이지</title>
+    <link rel="stylesheet" href="styles/styles.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <span>관리자 페이지</span>
+            <div class="navbar-right">
+                <a href="main.html">메인 페이지</a>
+                <a href="login.html">로그아웃</a>
+            </div>
+        </nav>
+    </header>
+    <main>
+        <section class="account-creation">
+            <h1>계정 생성</h1>
+            <form id="createAccountForm">
+                <label for="username"><b>아이디</b></label>
+                <input type="text" id="username" name="username" required>
+                <label for="password"><b>비밀번호</b></label>
+                <input type="password" id="password" name="password" required>
+                <label for="role"><b>역할</b></label>
+                <select id="role" name="role">
+                    <option value="user">사용자</option>
+                    <option value="admin">관리자</option>
+                </select>
+                <button type="button" onclick="createAccount()">생성</button>
+                <p id="createAccountError" class="error"></p>
+            </form>
+        </section>
+        <section class="account-list">
+            <h2>사용자 목록</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>아이디</th>
+                        <th>역할</th>
+                        <th>관리</th>
+                    </tr>
+                </thead>
+                <tbody id="accountList">
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <script src="scripts/admin.js"></script>
+</body>
+</html>

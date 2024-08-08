@@ -1,0 +1,336 @@
+/* 전역 스타일 */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  margin: 0;
+  padding: 0;
+}
+
+/* 네비게이션 바 스타일 */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #333;
+  color: #fff;
+  padding: 10px;
+}
+
+.navbar-right {
+  display: flex;
+}
+
+.navbar a {
+  color: white;
+  text-decoration: none;
+  margin-right: 20px;
+}
+
+.navbar a:hover {
+  text-decoration: underline;
+}
+
+.navbar span {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+/* 메인 콘텐츠 영역 스타일 */
+main {
+  max-width: 1200px; /* 크기를 더 늘림 */
+  margin: 20px auto;
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* 계정 생성 폼과 로그인 섹션 스타일 */
+.account-creation, .login-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.account-creation h1, .login-section h1 {
+  margin-bottom: 20px;
+}
+
+.account-creation form, .login-section form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%; /* 전체 너비 사용 */
+  max-width: 400px; /* 최대 너비 */
+}
+
+.account-creation label, .login-section label {
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.account-creation input, .account-creation select, .login-section input {
+  margin-top: 5px;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  width: 100%;
+  background-color: #fff;
+}
+
+.account-creation select {
+  margin-top: 5px;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  width: 100%;
+  background-color: #fff;
+  font-size: 16px; /* 글꼴 크기를 크게 조정 */
+}
+
+.account-creation select:focus {
+  height: auto; /* 선택 항목이 많을 때 전체 높이를 자동으로 조정 */
+}
+
+.account-creation select option {
+  padding: 10px; /* 선택 항목의 패딩을 조정 */
+  font-size: 16px; /* 드롭다운 항목의 글꼴 크기를 증가 */
+}
+
+.account-creation input, .login-section input {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.account-creation button, .login-section button {
+  margin-top: 15px;
+  padding: 10px 20px;
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+  max-width: 400px; /* 최대 너비 */
+}
+
+.account-creation button:hover, .login-section button:hover {
+  background-color: #0056b3;
+}
+
+/* 키워드 생성 목록 테이블 컨테이너 스타일 */
+.account-list, .table-container {
+  margin-top: 30px;
+}
+
+.account-list h2, .table-container h2 {
+  text-align: center;
+  margin-bottom: 100px;
+}
+
+.account-list table, .table-container table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.account-list th, .account-list td, .table-container th, .table-container td {
+  border: 1px solid #ddd;
+  padding: 5px; /* 새로 간격을 줄임 */
+  text-align: center;
+  font-size: 0.9em; /* 폰트 크기를 1만 줄임 */
+}
+
+.account-list th, .table-container th {
+  background-color: #f2f2f2;
+}
+
+/* 테이블 열 크기 조정 */
+.table-container th:nth-child(1),
+.table-container td:nth-child(1) {
+  width: 10%; /* 업체명 */
+}
+
+.table-container th:nth-child(2),
+.table-container td:nth-child(2) {
+  width: 4%; /* 순위 */
+}
+
+.table-container th:nth-child(3),
+.table-container td:nth-child(3) {
+  width: 10%; /* 검색어 */
+}
+
+.table-container th:nth-child(4),
+.table-container td:nth-child(4) {
+  width: 20%; /* 노출 키워드 */
+}
+
+.table-container th:nth-child(5),
+.table-container td:nth-child(5) {
+  width: 10%; /* 시작 날짜 */
+}
+
+.table-container th:nth-child(6),
+.table-container td:nth-child(6) {
+  width: 10%; /* 누락일 */
+}
+
+.table-container th:nth-child(7),
+.table-container td:nth-child(7) {
+  width: 5%; /* 상태 */
+}
+
+.table-container th:nth-child(8),
+.table-container td:nth-child(8) {
+  width: 10%; /* 메모 */
+}
+
+.table-container th:nth-child(9),
+.table-container td:nth-child(9) {
+  width: 10%; /* 관리 */
+}
+
+/* 버튼 스타일 */
+.account-list button, .table-container button {
+  padding: 5px 10px;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.account-list button:hover, .table-container button:hover {
+  background-color: #0056b3;
+}
+
+.edit-button {
+  background-color: #007BFF;
+}
+
+.edit-button:hover {
+  background-color: #0056b3;
+}
+
+.delete-button {
+  background-color: #FF0000;
+}
+
+.delete-button:hover {
+  background-color: #CC0000;
+}
+
+/* 키워드 입력 섹션 스타일 */
+.keyword-inputs, .keyword-search {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.keyword-inputs input, .keyword-search input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  margin-right: 10px;
+}
+
+.keyword-inputs input::placeholder, .keyword-search input::placeholder {
+  color: #999;
+}
+
+.keyword-inputs button, .keyword-search button {
+  padding: 10px 20px;
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.keyword-inputs button:hover, .keyword-search button:hover {
+  background-color: #0056b3;
+}
+
+/* 오류 메시지 스타일 */
+.error {
+  color: red;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+/* 모달 스타일 */
+.modal {
+  display: none; /* 기본적으로 표시하지 않음 */
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  max-width: 400px; /* 모달의 최대 너비를 늘림 */
+  text-align: center;
+  border-radius: 8px;
+}
+
+.modal-buttons {
+  margin-top: 20px;
+}
+
+.modal-buttons button {
+  padding: 10px 20px;
+  margin: 0 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px; /* 버튼 글꼴 크기 증가 */
+}
+
+#confirmButton, .modal-save-button {
+  background-color: #007BFF;
+  color: white;
+}
+
+#confirmButton:hover, .modal-save-button:hover {
+  background-color: #0056b3;
+}
+
+#cancelButton, .modal-cancel-button {
+  background-color: #FF0000;
+  color: white;
+}
+
+#cancelButton:hover, .modal-cancel-button:hover {
+  background-color: #CC0000;
+}
+
+.modal-content label {
+  display: block;
+  margin: 10px 0 5px;
+  font-weight: bold;
+}
+
+.modal-content input {
+  width: calc(100% - 20px);
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 16px; /* 입력 필드 글꼴 크기 증가 */
+}
+
+#editStartDate::placeholder {
+  color: #ccc;
+}
