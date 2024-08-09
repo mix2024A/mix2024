@@ -4,13 +4,21 @@
     <meta charset="UTF-8">
     <title>메인 페이지</title>
     <link rel="stylesheet" href="styles/styles.css">
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const isLoggedIn = localStorage.getItem('loggedIn');
+            if (!isLoggedIn || isLoggedIn !== 'true') {
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
 </head>
 <body>
     <div class="navbar">
         <span>메인 페이지</span>
         <div class="navbar-right">
             <a href="admin.html">관리자 페이지</a>
-            <a href="login.html">로그아웃</a>
+            <a href="login.html" onclick="logout()">로그아웃</a>
         </div>
     </div>
     <main>
@@ -84,6 +92,11 @@
         </div>
     </div>
 
+    <script>
+        function logout() {
+            localStorage.removeItem('loggedIn');
+        }
+    </script>
     <script src="scripts/main.js"></script>
 </body>
 </html>

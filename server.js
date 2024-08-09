@@ -223,7 +223,7 @@ app.get('/search', (req, res) => {
         }
         results.forEach(row => {
             row.startDate = formatDate(row.startDate);
-            row.omitDate = row.omitDate || ""; // 누락일은 빈 문자열로 반환
+            row.omitDate = row.omitDate || ""; // 누락일은 빈 문자열로
         });
         res.status(200).json(results);
     });
