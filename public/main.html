@@ -7,7 +7,7 @@
 </head>
 <body>
     <div class="navbar">
-        <span>Auto Suggest</span>
+        <span>메인 페이지</span>
         <div class="navbar-right">
             <a href="admin.html">관리자 페이지</a>
             <a href="login.html">로그아웃</a>
@@ -20,8 +20,7 @@
                 <input type="text" id="companyNameInput" placeholder="업체명">
                 <input type="text" id="keywordInput" placeholder="검색어">
                 <input type="text" id="exposureInput" placeholder="노출 키워드">
-                <input type="date" id="startDateInput" placeholder="2024/01/01">
-                <input type="text" id="omitDateInput" placeholder="누락일">
+                <input type="text" id="startDateInput" placeholder="YYYY/MM/DD">
                 <input type="text" id="noteInput" placeholder="비고">
                 <button id="registerButton">등록</button>
             </div>
@@ -40,7 +39,7 @@
                         <th>시작 날짜</th>
                         <th>누락일</th>
                         <th>상태</th>
-                        <th>메모</th>
+                        <th>비고</th>
                         <th>관리</th>
                     </tr>
                 </thead>
@@ -73,10 +72,10 @@
             <label for="editExposure">노출 키워드</label>
             <input type="text" id="editExposure">
             <label for="editStartDate">시작 날짜</label>
-            <input type="date" id="editStartDate" placeholder="2024/01/01">
+            <input type="text" id="editStartDate" placeholder="YYYY/MM/DD">
             <label for="editOmitDate">누락일</label>
-            <input type="text" id="editOmitDate">
-            <label for="editNote">메모</label>
+            <input type="number" id="editOmitDate" placeholder="">
+            <label for="editNote">비고</label>
             <input type="text" id="editNote">
             <div class="modal-buttons">
                 <button id="saveButton" class="modal-save-button">저장</button>

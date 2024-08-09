@@ -1,5 +1,6 @@
-// 로그인 함수
-function login() {
+function login(event) {
+    event.preventDefault(); // 폼의 기본 제출 동작을 막음
+
     const username = document.getElementById('loginUsername').value;
     const password = document.getElementById('loginPassword').value;
     const errorElement = document.getElementById('loginError');

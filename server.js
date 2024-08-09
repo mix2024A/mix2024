@@ -35,6 +35,16 @@ db.connect((err) => {
     console.log('MySQL Connected...');
 });
 
+// 유틸리티 함수: 날짜 형식을 YYYY/MM/DD로 변환
+const formatDate = (date) => {
+    if (!date) return "YYYY/MM/DD";
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = ("0" + (d.getMonth() + 1)).slice(-2);
+    const day = ("0" + d.getDate()).slice(-2);
+    return `${year}/${month}/${day}`;
+};
+
 // 계정 생성 API
 app.post('/createAccount', async (req, res) => {
     const { username, password, role } = req.body;
@@ -142,17 +152,23 @@ app.get('/keywords', (req, res) => {
             console.error('SELECT 쿼리 오류:', err);
             return res.status(500).json({ error: '데이터베이스 오류' });
         }
+        results.forEach(row => {
+            row.startDate = formatDate(row.startDate);
+            row.omitDate = row.omitDate || ""; // 누락일은 빈 문자열로 반환
+        });
         res.status(200).json(results);
     });
 });
 
 // 키워드 등록 API
 app.post('/keywords', (req, res) => {
-    const { companyName, keyword, note, exposure, startDate, omitDate } = req.body;
+    const { companyName, keyword, note, exposure, startDate } = req.body;
     const user_id = req.session.user.id; // 현재 로그인한 사용자의 user_id
 
-    const sql = 'INSERT INTO keywords (companyName, keyword, note, exposure, startDate, omitDate, user_id) VALUES (?, ?, ?, ?, ?, ?, ?)';
-    db.query(sql, [companyName, keyword, note, exposure, startDate, omitDate, user_id], (err, result) => {
+    const formattedStartDate = startDate ? new Date(startDate).toISOString().split('T')[0].replace(/-/g, '/') : null;
+
+    const sql = 'INSERT INTO keywords (companyName, keyword, note, exposure, startDate, user_id) VALUES (?, ?, ?, ?, ?, ?)';
+    db.query(sql, [companyName, keyword, note, exposure, formattedStartDate, user_id], (err, result) => {
         if (err) {
             console.error('INSERT 쿼리 오류:', err);
             return res.status(500).json({ error: '키워드 등록 실패' });
@@ -165,9 +181,10 @@ app.post('/keywords', (req, res) => {
 app.put('/keywords/:id', (req, res) => {
     const { id } = req.params;
     const { companyName, keyword, note, exposure, startDate, omitDate } = req.body;
+    const formattedStartDate = startDate ? new Date(startDate).toISOString().split('T')[0].replace(/-/g, '/') : null;
     const sql = 'UPDATE keywords SET companyName = ?, keyword = ?, note = ?, exposure = ?, startDate = ?, omitDate = ? WHERE id = ?';
     
-    db.query(sql, [companyName, keyword, note, exposure, startDate, omitDate, id], (err, result) => {
+    db.query(sql, [companyName, keyword, note, exposure, formattedStartDate, omitDate, id], (err, result) => {
         if (err) {
             console.error('UPDATE 쿼리 오류:', err);
             return res.status(500).json({ error: '키워드 수정 실패' });
@@ -199,11 +216,15 @@ app.get('/search', (req, res) => {
             console.error('SELECT 쿼리 오류:', err);
             return res.status(500).json({ error: '검색 실패' });
         }
+        results.forEach(row => {
+            row.startDate = formatDate(row.startDate);
+            row.omitDate = row.omitDate || ""; // 누락일은 빈 문자열로 반환
+        });
         res.status(200).json(results);
     });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080; // 여기서 8080은 기본 포트입니다.
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });

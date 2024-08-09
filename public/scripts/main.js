@@ -12,7 +12,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const confirmButton = document.getElementById('confirmButton');
     const cancelButton = document.getElementById('cancelButton');
 
-    confirmButton.addEventListener('click', function() {
+    confirmButton.addEventListener('click', deleteKeyword);
+    cancelButton.addEventListener('click', closeModal);
+
+    // 엔터 키를 눌렀을 때 삭제 확인 처리
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter' && modal.style.display === 'block') {
+            deleteKeyword();
+        }
+    });
+
+    function deleteKeyword() {
         if (deleteId !== null) {
             fetch(`/keywords/${deleteId}`, {
                 method: 'DELETE'
@@ -26,9 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => console.error('키워드 삭제 오류:', error));
         }
-    });
-
-    cancelButton.addEventListener('click', closeModal);
+    }
 
     function closeModal() {
         modal.style.display = 'none';
@@ -45,8 +53,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const companyName = document.getElementById('editCompanyName').value || '-';
             const keyword = document.getElementById('editKeyword').value;
             const exposure = document.getElementById('editExposure').value;
-            const startDate = document.getElementById('editStartDate').value;
-            const omitDate = document.getElementById('editOmitDate').value || '-';
+            const startDate = document.getElementById('editStartDate').value || null;
+            const omitDate = document.getElementById('editOmitDate').value || '';
             const note = document.getElementById('editNote').value;
 
             fetch(`/keywords/${editId}`, {
@@ -88,8 +96,7 @@ function registerKeyword() {
     const companyName = document.getElementById('companyNameInput').value || '-';
     const keyword = document.getElementById('keywordInput').value;
     const exposure = document.getElementById('exposureInput').value;
-    const startDate = document.getElementById('startDateInput').value;
-    const omitDate = document.getElementById('omitDateInput').value || '-';
+    const startDate = document.getElementById('startDateInput').value || null;
     const note = document.getElementById('noteInput').value;
 
     fetch('/keywords', {
@@ -97,7 +104,7 @@ function registerKeyword() {
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ companyName, keyword, exposure, startDate, omitDate, note })
+        body: JSON.stringify({ companyName, keyword, exposure, startDate, note })
     })
     .then(response => {
         if (!response.ok) {
@@ -124,7 +131,7 @@ function updateKeywordList(keywords) {
             <td>${keyword.keyword}</td>
             <td>${keyword.exposure}</td>
             <td>${keyword.startDate}</td>
-            <td>${keyword.omitDate || '-'}</td>
+            <td>${keyword.omitDate || ''}</td>
             <td>${keyword.status || '-'}</td>
             <td>${keyword.note}</td>
             <td>
@@ -149,9 +156,12 @@ function editKeyword(id, companyName, keyword, exposure, startDate, omitDate, no
     document.getElementById('editCompanyName').value = companyName;
     document.getElementById('editKeyword').value = keyword;
     document.getElementById('editExposure').value = exposure;
-    document.getElementById('editStartDate').value = startDate;
-    document.getElementById('editOmitDate').value = omitDate;
+    document.getElementById('editStartDate').value = startDate !== 'YYYY/MM/DD' ? startDate : '';
+    document.getElementById('editOmitDate').value = omitDate !== 'YYYY/MM/DD' ? omitDate : '';
     document.getElementById('editNote').value = note;
     editModal.style.display = 'block';
     editId = id; // 전역 변수로 설정
 }
+
+document.getElementById('editStartDate').placeholder = 'YYYY/MM/DD';
+document.getElementById('editOmitDate').placeholder = '';
