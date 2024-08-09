@@ -12,10 +12,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // 세션 설정
 app.use(session({
-    secret: 'secret-key', // 보안을 위해 더 복잡한 문자열로 바꿔주세요
+    secret: 'secret-key', 
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false } // HTTPS 사용 시 true로 변경
+    cookie: { secure: false }
 }));
 
 // MySQL 데이터베이스 연결 설정
@@ -149,7 +149,7 @@ app.delete('/accounts/:username', (req, res) => {
 
 // 키워드 목록 가져오기 API
 app.get('/keywords', (req, res) => {
-    const user_id = req.session.user.id; // 현재 로그인한 사용자의 user_id
+    const user_id = req.session.user.id;
     const sql = 'SELECT * FROM keywords WHERE user_id = ?';
 
     db.query(sql, [user_id], (err, results) => {
@@ -159,7 +159,7 @@ app.get('/keywords', (req, res) => {
         }
         results.forEach(row => {
             row.startDate = formatDate(row.startDate);
-            row.omitDate = row.omitDate || ""; // 누락일은 빈 문자열로 반환
+            row.omitDate = row.omitDate || ""; 
         });
         res.status(200).json(results);
     });
@@ -168,8 +168,7 @@ app.get('/keywords', (req, res) => {
 // 키워드 등록 API
 app.post('/keywords', (req, res) => {
     const { companyName, keyword, note, exposure, startDate } = req.body;
-    const user_id = req.session.user.id; // 현재 로그인한 사용자의 user_id
-
+    const user_id = req.session.user.id;
     const formattedStartDate = startDate ? new Date(startDate).toISOString().split('T')[0].replace(/-/g, '/') : null;
 
     const sql = 'INSERT INTO keywords (companyName, keyword, note, exposure, startDate, user_id) VALUES (?, ?, ?, ?, ?, ?)';
@@ -223,7 +222,7 @@ app.get('/search', (req, res) => {
         }
         results.forEach(row => {
             row.startDate = formatDate(row.startDate);
-            row.omitDate = row.omitDate || ""; // 누락일은 빈 문자열로 반환
+            row.omitDate = row.omitDate || ""; 
         });
         res.status(200).json(results);
     });
