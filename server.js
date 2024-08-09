@@ -45,6 +45,11 @@ const formatDate = (date) => {
     return `${year}/${month}/${day}`;
 };
 
+// 로그인 페이지를 루트('/')에서 제공
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
 // 계정 생성 API
 app.post('/createAccount', async (req, res) => {
     const { username, password, role } = req.body;
