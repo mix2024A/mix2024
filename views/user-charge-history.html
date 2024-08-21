@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>충전 내역</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <span class="navbar-user"><strong id="username"></strong></span>
+        <div class="navbar-links">
+            <a href="/main" class="navbar-link">메인 페이지</a>
+            <a href="/delkeywords" class="navbar-link">삭제 키워드</a>
+            <a href="/user-charge-history" class="navbar-link">충전 내역</a>
+            <a href="/logout" class="navbar-link">로그아웃</a>
+        </div>
+    </nav>
+
+    <div class="info-box"> 
+        <p>충전 내역123</p>
+    </div>
+
+    <div class="main-container">
+        <table class="main-account-table">
+            <thead>
+                <tr>
+                    <th>충전 슬롯</th>
+                    <th>충전 날짜</th>
+                    <th>머감 날짜</th>
+                    <th>잔여일</th>
+                    <th>상태</th>
+                    
+                </tr>
+            </thead>
+            <tbody>
+                <!-- 삭제된 키워드 리스트가 여기에 동적으로 삽입됩니다 -->
+            </tbody>
+        </table>
+    </div>
+    
+
+    <script src="/js/user-charge-history.js"></script>
+</body>
+</html>

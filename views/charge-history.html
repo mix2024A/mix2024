@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>충전 내역</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <span class="navbar-user"><strong id="username"></strong></span>
+        <div class="navbar-links">
+            <a href="/admin-dashboard" class="navbar-link">관리자 대시보드</a>
+            <a href="/create-account" class="navbar-link">계정 관리</a>
+            <a href="/charge-history" class="navbar-link">충전 내역</a>
+            <a href="/logout" class="navbar-link">로그아웃</a>
+        </div>
+    </nav>
+
+    <div class="info-box"> 
+        <p>충전 내역</p>
+    </div>
+
+
+
+    <div class="main-container">
+        <!-- 검색 기능 추가 -->
+        <div class="search-container">
+            <input type="text" id="search-id" name="search-id" class="search-input" placeholder="아이디를 입력하세요">
+            <button id="search-button" class="search-button">찾기</button>
+        </div>
+        
+
+        <table class="account-table">
+            <thead>
+                <tr>
+                    <th>아이디</th>
+                    <th>충전 갯수</th>
+                    <th>충전 날짜</th>
+                    <th>마감 날짜</th>
+                    <th>상태</th>
+                    <th>연장</th>
+                    <th>수정</th>
+                    <th>삭제</th>
+                </tr>
+            </thead>
+            <tbody id="history-table-body">
+                <!-- 충전 내역이 여기에 동적으로 삽입됨 -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 연장 모달 -->
+    <div id="extendModal" class="modal">
+        <div class="modal-content">
+            <h2>마감 날짜 연장</h2>
+            <p><strong><span id="extend-username"></span></strong> 님의 마감 날짜를 연장하시겠습니까?</p>
+            <div class="form-group">
+                <label for="extend-expiry-date">마감 날짜:</label>
+                <input type="text" id="extend-expiry-date" name="extend-expiry-date" disabled>
+            </div>
+            <div class="button-container">
+                <button id="confirmExtend" class="modal-button save">연장</button>
+                <button id="cancelEdit" class="modal-button cancel">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 수정 모달 창 -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h2>충전 내역 날짜 수정</h2>
+            <div class="form-group">
+                <label for="charge-date">충전 날짜:</label>
+                <input type="date" id="charge-date" name="charge-date">
+            </div>
+            <div class="form-group">
+                <label for="expiry-date">마감 날짜:</label>
+                <input type="date" id="expiry-date" name="expiry-date">
+            </div>
+
+            <div class="button-container">
+                <button id="saveEdit" class="modal-button save">수정</button>
+                <button id="cancelEdit" class="modal-button cancel">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 삭제 모달 창 -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <h2>충전 슬롯 삭제</h2>
+            <p><strong id="delete-username"></strong> 충전 슬롯을 삭제 하시겠습니까?</p>
+            <div class="button-container">
+                <button id="confirmDelete" class="modal-button save">삭제</button>
+                <button id="cancelDelete" class="modal-button cancel">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 모달 오버레이 요소 추가 -->
+    <div id="modalOverlay" class="modal-overlay"></div>
+
+    <script src="/js/charge-history.js"></script>
+</body>
+</html>

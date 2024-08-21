@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 로그인 페이지</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>관리자 로그인</h1>
+        <form action="/admin/login" method="POST">
+            <label for="adminUsername">아이디:</label>
+            <input type="text" id="adminUsername" name="adminUsername" required>
+
+            <label for="adminPassword">비밀번호:</label>
+            <input type="password" id="adminPassword" name="adminPassword" required>
+
+            <button type="submit">로그인</button>
+        </form>
+
+        <!-- 오류 메시지를 표시할 요소 추가 -->
+        <p id="error-message" class="error-message"></p>
+    </div>
+
+    <script>
+        // URL에서 쿼리 파라미터를 확인하고, 오류 메시지를 표시하는 코드
+        const urlParams = new URLSearchParams(window.location.search);
+        const errorMessage = urlParams.get('error');
+        if (errorMessage) {
+            const errorElement = document.getElementById('error-message');
+            errorElement.textContent = decodeURIComponent(errorMessage);
+            errorElement.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

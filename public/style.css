@@ -1,0 +1,500 @@
+/* 전역 스타일 */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Raleway, sans-serif;
+}
+
+body {
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+/* 네비게이션 바 스타일 */
+.navbar {
+    background-color: #333333; /* 진한 회색 */
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ddd;
+    width: 100%; /* 전체 너비 */
+    position: fixed; /* 상단에 고정 */
+    top: 0;
+    left: 0;
+    z-index: 1000; /* 다른 요소보다 위 */
+}
+
+/* 네비게이션 바 링크들 스타일 */
+.navbar-links {
+    display: flex;
+}
+
+.navbar-link, .navbar-logout, .navbar-user {
+    font-size: 16px;
+    color: #ffffff;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.navbar-link {
+    margin-right: 20px;
+}
+
+.navbar-link:last-child {
+    margin-right: 0;
+}
+
+.navbar-logout {
+    margin-left: 20px;
+}
+
+.navbar-logout:hover {
+    text-decoration: underline;
+}
+
+/* 현재 페이지의 링크 스타일 */
+.navbar-link.active {
+    color: #ffffff; /* 텍스트 색상 */
+
+    text-decoration: none; /* 링크 밑줄 제거 */
+    font-weight: bold; /* 텍스트 두껍게 */
+    display: inline-block; /* 링크를 블록으로 표시하여 패딩 적용 */
+}
+
+/* 검색 기능 스타일 */
+/* 추가된 스타일 */
+.search-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+    flex-wrap: nowrap; /* 한 줄에 위치하도록 유지 */
+}
+
+
+.search-input
+ {
+    padding: 4px; /* 입력 필드 내부 간격 줄이기 */
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    margin-right: 8px; /* 입력 필드와 버튼 사이의 간격 줄이기 */
+    box-sizing: border-box;
+    height: 34px; /* 입력 필드 높이 줄이기 */
+    min-width: 80px; /* 입력 필드의 최소 너비 설정 */
+}
+
+#slot-input {
+    max-width: 50px; /* 원하는 슬롯 필드 너비로 수정 */
+}
+
+#search-dropdown {
+    max-width: 120px; /* 원하는 드롭다운 너비로 수정 */
+}
+
+.search-button {
+    padding: 6px 16px;
+    border: none;
+    border-radius: 4px;
+    background-color: #3b49df;
+    color: white;
+    cursor: pointer;
+    font-size: 13px;
+    height: 34px;
+    box-sizing: border-box;
+    margin-bottom: 20px;
+    width: 60px; /* 원하는 너비로 설정 */
+    white-space: nowrap; /* 텍스트가 줄 바꿈되지 않도록 설정 */
+}
+
+.search-button:hover {
+    background-color: #2d37b3;
+}
+
+
+/* 컨테이너 스타일 */
+.container {
+    background-color: #ffffff;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.1);
+    width: 500px;
+    max-width: 100%;
+    margin: 100px auto 0; /* 중앙 정렬 및 상단 여백 */
+    text-align: center;
+}
+
+/* 테이블 스타일 */
+.account-table {
+    width: 100%;
+    margin-top: 10px;
+    border-collapse: collapse;
+    table-layout: fixed; /* 고정 레이아웃 */
+    white-space: nowrap; /* 텍스트가 줄 바꿈되지 않도록 설정 */
+}
+
+.account-table th, .account-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+.account-table th {
+    background-color: #f2f2f2;
+    color: #333;
+    font-size: 15px; /* 원하는 글씨 크기로 설정 */
+    
+}
+
+.account-table td {
+    color: #666;
+    font-size: 13px; /* 원하는 글씨 크기로 설정 */
+    padding: 7px
+}
+
+
+/* 메인테이블 스타일 */
+.main-account-table {
+    width: 100%;
+    margin-top: 10px;
+    border-collapse: collapse;
+    table-layout: fixed; /* 고정 레이아웃 */
+    white-space: nowrap; /* 텍스트가 줄 바꿈되지 않도록 설정 */
+}
+
+.main-account-table th, .main-account-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+.main-account-table th {
+    background-color: #f2f2f2;
+    color: #333;
+    font-size: 15px; /* 원하는 글씨 크기로 설정 */
+    
+}
+
+.main-account-table td {
+    color: #666;
+    font-size: 13px; /* 원하는 글씨 크기로 설정 */
+    padding: 7px
+}
+
+.main-account-table th:nth-child(1) { /*순위*/
+    width: 5%; 
+}
+.main-account-table th:nth-child(2) { /*검색어*/
+    width: 15%; 
+}
+.main-account-table th:nth-child(3) { /*노출키워드*/
+    width: 40%; 
+}
+.main-account-table th:nth-child(4) { /*슬롯*/
+    width: 5%; 
+}
+.main-account-table th:nth-child(5) { /*등록 날짜*/
+    width: 9%; 
+}
+.main-account-table th:nth-child(6) { /*비고*/
+    width: 10%;  
+}
+.main-account-table th:nth-child(7) { /*수정*/
+    width: 8%; 
+}
+.main-account-table th:nth-child(8) { /*삭제*/
+    width: 8%; 
+}
+
+/* 인포박스 슬롯갯수 스타일 */
+.info-box {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px 8px 0 0; /* 하단 모서리를 둥글지 않게 설정 */
+    box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    max-width: 100%;
+    margin: 100px auto 0;
+   
+    display: flex; /* Flexbox 레이아웃 적용 */
+    justify-content: flex-start; /* 아이템을 왼쪽으로 정렬 */
+    align-items: center; /* 세로 중앙 정렬 */
+}
+.info-box p {
+    margin: 0 20px; /* 텍스트 사이의 간격 조정 */
+    color: #666;
+    font-weight: bold; /* 글자 굵게 */
+}
+
+/* 메인 컨테이너 스타일 */
+.main-container {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 0 0 8px 8px; /* 상단 모서리를 둥글지 않게 설정 */
+    box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    max-width: 100%;
+    margin: 0 auto 0; /* 인포박스와 메인 컨테이너를 붙이기 위해 상단 여백 제거 */
+    text-align: center;
+}
+
+
+
+/* 제목 및 본문 스타일 */
+h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #3b49df;
+    margin-bottom: 20px;
+}
+
+p {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+/* 폼 스타일 */
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* 필드를 가운데로 정렬 */
+}
+
+label {
+    font-size: 14px;
+    margin-bottom: 5px;
+    color: #666;
+}
+
+input[type="text"], input[type="password"], input[type="number"], select {
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    width: 250px; /* 입력 필드와 드롭다운의 너비 조정 */
+    max-width: 100%; /* 부모 컨테이너의 최대 너비를 넘어가지 않도록 */
+}
+
+/* 기본 버튼 스타일 */
+button {
+    background-color: #3b49df;
+    color: white;
+    padding: 10px 20px; /* 버튼의 패딩 조정 */
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 150px; /* 버튼 너비 조정 */
+}
+
+button:hover {
+    background-color: #2d37b3;
+}
+
+/* 관리자 전용 버튼 스타일 */
+.account-edit-button, .account-delete-button, .account-charge-button {
+    width: auto;
+    padding: 3px 7px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.account-delete-button {
+    margin-right: 0; /* 마지막 버튼은 오른쪽 마진 제거 */
+}
+
+.account-edit-button {
+    background-color: #8BC34A; /* 연두색 */
+    color: white;
+}
+
+.account-edit-button:hover {
+    background-color: #7CB342; /* 마우스 오버 시 더 짙은 연두색 */
+}
+
+.account-delete-button {
+    background-color: red;
+    color: white;
+}
+
+.account-delete-button:hover {
+    background-color: darkred;
+}
+
+.account-charge-button {
+    background-color: #3b49df; /* 기본 색상 */
+    color: white;
+}
+
+.account-charge-button:hover {
+    background-color: #2d37b3; /* 마우스 오버 시 색상 */
+}
+
+/* 모달 오버레이 스타일 */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    display: none; /* 기본적으로 숨김 */
+}
+
+/* 모달 기본 스타일 */
+.modal {
+    display: none; /* 기본적으로 숨김 */
+    position: fixed;
+    z-index: 1000; /* 오버레이보다 위 */
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 600px;
+    background-color: #fff; /* 흰색 배경 */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 20px;
+    outline: none; /* 포커스가 갔을 때 아웃라인 제거 */
+}
+
+
+
+/* 모달 콘텐츠 스타일 */
+.modal-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+/* 비활성화된 입력란 스타일 추가 */
+.modal-content input[disabled] {
+    background-color: #e9e9e9;
+    color: #333;
+    border: 1px solid #ccc;
+    padding: 5px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+
+/* 모달 제목 스타일 */
+.modal-content h2 {
+    margin-bottom: 20px;
+    font-size: 24px;
+    font-weight: 700;
+    color: #333333;
+    text-align: center;
+    width: 100%;
+}
+
+/* 입력 필드 및 라벨 컨테이너 */
+/* 공통 스타일 설정 */
+.form-group {
+    width: 80%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.modal-content label {
+    width: 30%; /* 레이블 너비 설정 */
+    font-size: 14px;
+    color: #666666;
+    text-align: right;
+    margin-right: 10px;
+}
+
+.modal-content input[type="text"],
+.modal-content input[type="number"],
+.modal-content input[type="date"],
+.modal-content select {
+    height: 40px; /* 모든 입력 필드의 높이를 동일하게 설정 */
+    width: 60%; /* 모든 입력 필드의 너비를 동일하게 설정 */
+    padding: 8px;
+    border: 1px solid #dddddd;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+    margin-bottom: 15px;
+}
+
+/* 증감 버튼 제거 (숫자 필드) */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+/* 모달 버튼 통합 스타일 */
+.modal-button {
+    width: auto;
+    padding: 8px 14px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-right: 8px;
+}
+
+.modal-button:last-child {
+    margin-right: 0;
+}
+
+.modal-button.save {
+    background-color: #8BC34A;
+}
+
+.modal-button.save:hover {
+    background-color: #7CB342;
+}
+
+.modal-button.cancel {
+    background-color: #f44336;
+}
+
+.modal-button.cancel:hover {
+    background-color: #d32f2f;
+}
+
+/* 닫기 버튼 스타일 */
+.close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: #aaaaaa;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+    color: #000000;
+    text-decoration: none;
+}
+
+/* 오류 메시지 스타일 */
+.error-message {
+    color: red;
+    font-size: 14px;
+    margin-top: 10px;
+    display: none; /* 기본적으로 숨김 */
+}
+

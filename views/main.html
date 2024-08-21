@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>메인 페이지</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <span class="navbar-user"><strong id="username"></strong></span>
+        <div class="navbar-links">
+            <a href="/main" class="navbar-link">메인 페이지</a>
+            <a href="/delkeywords" class="navbar-link">삭제 키워드</a>
+            <a href="/user-charge-history" class="navbar-link">충전 내역</a>
+            <a href="/logout" class="navbar-link">로그아웃</a>
+        </div>
+    </nav>
+    
+    <!-- 슬롯 정보 박스 추가 -->
+    <div class="info-box"> 
+        <p>구매슬롯: <span id="slot"></span></p>
+        <p>잔여슬롯: <span id="remainingSlots"></span></p>
+        <p>수정횟수: <span id="editCount"></span></p>
+    </div>
+
+    <div class="main-container">
+
+        <div class="search-container">
+            <input type="text" id="search-term" name="search-term" class="search-input" placeholder="검색어">
+            <input type="text" id="display-keyword" name="display-keyword" class="search-input" placeholder="노출 키워드">
+            <input type="number" id="slot-input" name="slot" class="search-input" placeholder="슬롯">
+            <input type="text" id="note" name="note" class="search-input" placeholder="비고">
+            <button id="register-button" class="search-button">등록</button>
+        </div>
+
+               <!-- 찾기 기능 추가 -->
+        <div class="search-container">
+            <select id="search-dropdown" class="search-input">
+                <option value="search-term">검색어</option>
+                <option value="display-keyword">노출 키워드</option>
+                <option value="note">비고</option>
+            </select>
+            <input type="text" id="search-input" class="search-input" placeholder="검색어 또는 노출 키워드 입력">
+            <button id="search-button" class="search-button">찾기</button>
+        </div>
+
+        
+
+        <table class="main-account-table">
+            <thead>
+                <tr>
+                    <th>순위</th>
+                    <th>검색어</th>
+                    <th>노출 키워드</th>
+                    <th>슬롯</th>
+                    <th>등록일</th>
+                    <th>비고</th>
+                    <th>수정</th>
+                    <th>삭제</th>
+                </tr>
+            </thead>
+    <tbody>
+        <!-- 서버에서 가져온 계정 목록이 반복해서 표시됨 -->
+    </tbody>
+</table>
+    
+<!-- 모달 오버레이 요소 추가 -->
+<div id="modalOverlay" class="modal-overlay"></div>
+
+<!-- 수정 모달 창 -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <h2>키워드 수정</h2>
+
+        <div class="form-group">
+            <label for="edit-search-term">검색어:</label>
+            <input type="text" id="edit-search-term" name="search-term" disabled>
+        </div>
+
+        <div class="form-group">
+            <label for="edit-display-keyword">노출 키워드:</label>
+            <input type="text" id="edit-display-keyword" name="display-keyword" disabled>
+        </div>
+
+        <div class="form-group">
+            <label for="edit-slot">슬롯:</label>
+            <input type="number" id="edit-slot" name="slot">
+        </div>
+
+        <div class="form-group">
+            <label for="edit-note">비고:</label>
+            <input type="text" id="edit-note" name="note">
+        </div>
+
+        <div class="button-container">
+            <button id="saveEdit" class="modal-button save">수정</button>
+            <button id="cancelEdit" class="modal-button cancel">취소</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- 삭제 모달 창 -->
+<div id="deleteModal" class="modal">
+    <div class="modal-content">
+        <h2>키워드 삭제</h2>
+        <p><strong id="delete-keyword"></strong> 키워드를 삭제하시겠습니까?</p>
+        <div class="button-container">
+            <button id="confirmDelete" class="modal-button save">삭제</button>
+            <button id="cancelDelete" class="modal-button cancel">취소</button>
+        </div>
+    </div>
+</div>
+
+
+    <script src="/js/main.js"></script> <!-- main.js 로드 -->
+    </body>
+    </html>
+    
