@@ -441,8 +441,10 @@ exports.handleExpiredSlots = () => {
             console.error('Failed to update expired charge history:', err);
         } else {
             console.log(`Expired slots deactivated: ${results.affectedRows} rows affected`);
+            console.log('Query Results:', results);  // 쿼리 결과 출력
         }
     });
+    
 
     const disableSlotsQuery = `
     UPDATE users u
