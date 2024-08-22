@@ -188,16 +188,16 @@ body {
     width: 5%; 
 }
 .main-account-table th:nth-child(2) { /*검색어*/
-    width: 15%; 
+    width: 20%; 
 }
 .main-account-table th:nth-child(3) { /*노출키워드*/
-    width: 40%; 
+    width: 36%; 
 }
 .main-account-table th:nth-child(4) { /*슬롯*/
     width: 5%; 
 }
 .main-account-table th:nth-child(5) { /*등록 날짜*/
-    width: 9%; 
+    width: 8%; 
 }
 .main-account-table th:nth-child(6) { /*비고*/
     width: 10%;  
