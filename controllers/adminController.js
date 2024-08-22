@@ -428,20 +428,20 @@ exports.editChargeHistory = (req, res) => {
     });
 };
 
-// 만료된 슬롯 비활성화 및 삭제 예정 날짜 설정 함수 추가
+// 만료된 슬롯 비활성화 함수 수정
 exports.handleExpiredSlots = () => {
     const updateExpiredQuery = `
         UPDATE charge_history 
         SET 
-            deletion_date = DATE_ADD(expiry_date, INTERVAL 3 DAY) -- 만료일로부터 3일 후에 삭제
-        WHERE expiry_date < CURDATE() AND deletion_date IS NULL
+            isSlotActive = 0 -- 만료된 슬롯 비활성화
+        WHERE expiry_date < CURDATE() AND isSlotActive = 1
     `;
 
     connection.query(updateExpiredQuery, (err, results) => {
         if (err) {
             console.error('Failed to update expired charge history:', err);
         } else {
-            console.log('Expired charge history marked for deletion:', results.affectedRows);
+            console.log('Expired slots deactivated:', results.affectedRows);
         }
     });
 
@@ -450,35 +450,21 @@ exports.handleExpiredSlots = () => {
     JOIN (
         SELECT username, SUM(amount) AS expiredSlotAmount
         FROM charge_history
-        WHERE expiry_date < CURDATE() AND deletion_date IS NOT NULL
+        WHERE expiry_date < CURDATE() AND isSlotActive = 0
         GROUP BY username
     ) ch ON u.username = ch.username
     SET 
         u.slot = GREATEST(0, u.slot - LEAST(u.slot, ch.expiredSlotAmount)),
         u.remainingSlots = GREATEST(0, u.remainingSlots - LEAST(u.remainingSlots, ch.expiredSlotAmount)),
         u.editCount = GREATEST(0, u.editCount - LEAST(u.editCount, ch.expiredSlotAmount))
-    WHERE ch.expiredSlotAmount > 0;
-    
-`;
+    WHERE ch.expiredSlotAmount > 0 AND u.isSlotActive = 1;
+    `;
 
     connection.query(disableSlotsQuery, (err, results) => {
         if (err) {
             console.error('Failed to deactivate user slots:', err);
         } else {
             console.log('User slots deactivated:', results.affectedRows);
-        }
-    });
-
-    const deleteQuery = `
-    DELETE FROM charge_history 
-    WHERE deletion_date <= CURDATE() AND deletion_date IS NOT NULL
-`;
-
-    connection.query(deleteQuery, (err, results) => {
-        if (err) {
-            console.error('Failed to delete charge history:', err);
-        } else {
-            console.log('Charge history deleted:', results.affectedRows);
         }
     });
 };
