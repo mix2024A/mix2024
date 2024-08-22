@@ -456,10 +456,9 @@ exports.handleExpiredSlots = () => {
     SET 
         u.slot = GREATEST(0, u.slot - LEAST(u.slot, ch.expiredSlotAmount)),
         u.remainingSlots = GREATEST(0, u.remainingSlots - LEAST(u.remainingSlots, ch.expiredSlotAmount)),
-        u.editCount = GREATEST(0, u.editCount - LEAST(u.editCount, ch.expiredSlotAmount)),
-        u.isSlotActive = IF(ch.expiredSlotAmount > 0, 0, u.isSlotActive)
-    WHERE ch.expiredSlotAmount > 0
-      AND u.isSlotActive = 1;  -- 이미 비활성화된 슬롯은 다시 처리하지 않음
+        u.editCount = GREATEST(0, u.editCount - LEAST(u.editCount, ch.expiredSlotAmount))
+    WHERE ch.expiredSlotAmount > 0;
+    
 `;
 
     connection.query(disableSlotsQuery, (err, results) => {
