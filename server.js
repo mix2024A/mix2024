@@ -98,7 +98,6 @@ cron.schedule('* * * * *', () => {
 });
 
 
-
 // 서버 실행
 app.listen(port, () => { 
     console.log(`Server running at http://localhost:${port}/`);

@@ -461,6 +461,8 @@ exports.handleExpiredSlots = (callback) => {
                 WHERE ch.expiredSlotAmount > 0 AND u.slot > 0;
             `;
 
+            console.log(`Executing disableSlotsQuery for users...`);
+
             connection.query(disableSlotsQuery, (err, results) => {
                 if (err) {
                     console.error('Failed to deactivate user slots:', err);
