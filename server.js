@@ -87,16 +87,8 @@ app.get('/delkeywords', (req, res) => {
 // 크론 작업 설정
 cron.schedule('* * * * *', () => {
     console.log("Cron job started: Checking for expired slots...");
-
-    userController.handleExpiredSlots((err, result) => {
-        if (err) {
-            console.error("Error in handleExpiredSlots:", err);
-        } else {
-            console.log("handleExpiredSlots completed. Slots deactivated: ", result.deactivatedSlots, "Users updated: ", result.updatedUsers);
-        }
-    });
+    userController.handleExpiredSlots();
 });
-
 
 // 서버 실행
 app.listen(port, () => { 
