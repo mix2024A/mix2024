@@ -90,8 +90,6 @@ cron.schedule('* * * * *', () => {
     const userController = require('./controllers/userController');
     console.log("Calling handleExpiredSlots...");
     adminController.handleExpiredSlots();  // 슬롯 만료 처리 함수 호출
-    console.log("Calling deleteOldDeletedKeywords...");
-    userController.deleteOldDeletedKeywords();  // 3일 지난 삭제된 키워드 영구 삭제 함수 호출
 });
 
 
