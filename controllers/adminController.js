@@ -431,22 +431,20 @@ exports.editChargeHistory = (req, res) => {
 // 만료된 슬롯 비활성화 함수 수정
 exports.handleExpiredSlots = () => {
     const updateExpiredQuery = `
-        UPDATE charge_history 
-        SET isSlotActive = 0 
-        WHERE expiry_date < CURDATE() AND isSlotActive = 1
-    `;
+    UPDATE charge_history 
+    SET isSlotActive = 0 
+    WHERE expiry_date < CURDATE() AND isSlotActive = 1
+`;
 
-    connection.query(updateExpiredQuery, (err, results) => {
-        if (err) {
-            console.error('Failed to update expired charge history:', err);
-        } else {
-            console.log(`Expired slots deactivated: ${results.affectedRows} rows affected`);
-            console.log('Query Results:', results);  // 쿼리 결과 출력
-        }
-    });
-    
+connection.query(updateExpiredQuery, (err, results) => {
+    if (err) {
+        console.error('Failed to update expired charge history:', err);
+    } else {
+        console.log(`Expired slots deactivated: ${results.affectedRows} rows affected`);
+    }
+});
 
-    const disableSlotsQuery = `
+const disableSlotsQuery = `
     UPDATE users u
     JOIN (
         SELECT username, SUM(amount) AS expiredSlotAmount
@@ -459,13 +457,14 @@ exports.handleExpiredSlots = () => {
         u.remainingSlots = GREATEST(0, u.remainingSlots - LEAST(u.remainingSlots, ch.expiredSlotAmount)),
         u.editCount = GREATEST(0, u.editCount - LEAST(u.editCount, ch.expiredSlotAmount))
     WHERE ch.expiredSlotAmount > 0;
-    `;
+`;
 
-    connection.query(disableSlotsQuery, (err, results) => {
-        if (err) {
-            console.error('Failed to deactivate user slots:', err);
-        } else {
-            console.log(`User slots deactivated: ${results.affectedRows} rows affected`);
-        }
-    });
+connection.query(disableSlotsQuery, (err, results) => {
+    if (err) {
+        console.error('Failed to deactivate user slots:', err);
+    } else {
+        console.log(`User slots deactivated: ${results.affectedRows} rows affected`);
+    }
+});
+
 };
