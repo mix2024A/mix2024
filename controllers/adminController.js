@@ -441,7 +441,7 @@ exports.handleExpiredSlots = () => {
         if (err) {
             console.error('Failed to update expired charge history:', err);
         } else {
-            console.log('Expired slots deactivated:', results.affectedRows);
+            console.log(`Expired slots deactivated: ${results.affectedRows} rows affected`);
         }
     });
 
@@ -464,7 +464,7 @@ exports.handleExpiredSlots = () => {
         if (err) {
             console.error('Failed to deactivate user slots:', err);
         } else {
-            console.log('User slots deactivated:', results.affectedRows);
+            console.log(`User slots deactivated: ${results.affectedRows} users updated`);
         }
     });
 };
