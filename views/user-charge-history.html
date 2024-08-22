@@ -21,23 +21,24 @@
         <p>충전 내역</p>
     </div>
 
-    <div class="main-container">
-        <table class="main-account-table">
-            <thead>
-                <tr>
-                    <th>충전 슬롯</th>
-                    <th>충전 날짜</th>
-                    <th>마감 날짜</th>
-                    <th>잔여일</th>
-                    <th>상태</th>
-                    
-                </tr>
-            </thead>
-            <tbody id="history-table-body">
-                <!-- 충전 내역이 여기에 동적으로 삽입됨 -->
-            </tbody>
-        </table>
-    </div>
+    <table class="account-table">
+        <thead>
+            <tr>
+                <th>아이디</th>
+                <th>충전 갯수</th>
+                <th>충전 날짜</th>
+                <th>마감 날짜</th>
+                <th>상태</th>
+                <th>연장</th>
+                <th>수정</th>
+                <th>삭제</th>
+            </tr>
+        </thead>
+        <tbody id="history-table-body">
+            <!-- 충전 내역이 여기에 동적으로 삽입됨 -->
+        </tbody>
+    </table>
+</div>
     
 
     <script src="/js/user-charge-history.js"></script>
