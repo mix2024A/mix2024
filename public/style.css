@@ -178,8 +178,8 @@ body {
 
 .main-account-table td {
     color: #666;
-    font-size: 13px; /* 원하는 글씨 크기로 설정 */
-    padding: 8px
+    font-size: 18px; /* 원하는 글씨 크기로 설정 */
+    padding: 7px
 }
 
 .main-account-table th:nth-child(1) { /*순위*/
