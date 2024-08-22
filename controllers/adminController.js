@@ -430,6 +430,8 @@ exports.editChargeHistory = (req, res) => {
 
 // 만료된 슬롯 비활성화 함수 수정
 exports.handleExpiredSlots = () => {
+    console.log("Starting handleExpiredSlots...");
+
     const updateExpiredQuery = `
         UPDATE charge_history 
         SET 
@@ -457,7 +459,7 @@ exports.handleExpiredSlots = () => {
         u.slot = GREATEST(0, u.slot - LEAST(u.slot, ch.expiredSlotAmount)),
         u.remainingSlots = GREATEST(0, u.remainingSlots - LEAST(u.remainingSlots, ch.expiredSlotAmount)),
         u.editCount = GREATEST(0, u.editCount - LEAST(u.editCount, ch.expiredSlotAmount))
-    WHERE ch.expiredSlotAmount > 0 AND u.isSlotActive = 1;
+    WHERE ch.expiredSlotAmount > 0 AND u.slot > 0;
     `;
 
     connection.query(disableSlotsQuery, (err, results) => {
