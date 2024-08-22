@@ -86,7 +86,7 @@ app.get('/delkeywords', (req, res) => {
 
 // 크론 작업 설정
 cron.schedule('* * * * *', () => {
-    console.log("Cron job started: Checking for expired slots...");
+    console.log("Cron job started at " + new Date().toLocaleString());
     userController.handleExpiredSlots();
 });
 
