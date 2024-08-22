@@ -85,7 +85,7 @@ app.get('/delkeywords', (req, res) => {
 });
 
 // 크론 작업 설정
-cron.schedule('* * * * *', () => {
+cron.schedule('0 0 * * *', () => {
     console.log("Cron job running...");
     const userController = require('./controllers/userController');
     console.log("Calling handleExpiredSlots...");
