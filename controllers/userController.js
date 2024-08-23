@@ -30,7 +30,6 @@ exports.getUserInfo = (req, res) => {
     });
 };
 
-// 삭제된 키워드 가져오기 함수 추가
 // 삭제된 키워드 가져오기 함수 수정
 exports.getDeletedKeywords = (req, res) => {
     validateSession(req, res, () => {
@@ -188,6 +187,7 @@ exports.deleteKeyword = (req, res) => {
                 `;
 
                 connection.query(insertDeletedQuery, [
+                    req.session.user,
                     keyword.search_term,
                     keyword.display_keyword,
                     keyword.slot,
