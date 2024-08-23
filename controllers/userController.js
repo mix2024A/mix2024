@@ -178,21 +178,25 @@ exports.deleteKeyword = (req, res) => {
             if (results.length > 0) {
                 const keyword = results[0];
                 const now = new Date();
+                const scheduledDeletionDate = new Date();
+                scheduledDeletionDate.setDate(scheduledDeletionDate.getDate() + 3);
+                scheduledDeletionDate.setHours(0, 0, 0, 0); // 자정으로 설정
 
                 // 삭제된 키워드를 deleted_keywords 테이블에 삽입
                 const insertDeletedQuery = `
-                    INSERT INTO deleted_keywords (username, search_term, display_keyword, slot, created_at, deleted_at, note)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO deleted_keywords (username, search_term, display_keyword, slot, created_at, deleted_at, note, scheduled_deletion_date)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 `;
 
                 connection.query(insertDeletedQuery, [
-                    req.session.user, // 현재 사용자의 username 추가
+                    req.session.user,
                     keyword.search_term,
                     keyword.display_keyword,
                     keyword.slot,
                     keyword.created_at,
                     now,
-                    keyword.note
+                    keyword.note,
+                    scheduledDeletionDate
                 ], (err) => {
                     if (err) {
                         console.error('Error inserting deleted keyword:', err);
@@ -220,13 +224,12 @@ exports.deleteKeyword = (req, res) => {
                                 return res.status(500).json({ error: 'Internal Server Error' });
                             }
 
-                            // 여기서 수정 횟수를 차감
+                            // 수정 횟수 차감 로직 추가
                             const deductEditCountQuery = `
                                 UPDATE users
-                                SET editCount = GREATEST(0, editCount - 1) -- 최소값 0
+                                SET editCount = GREATEST(0, editCount - 1)
                                 WHERE username = ?
                             `;
-                            
                             connection.query(deductEditCountQuery, [req.session.user], (err) => {
                                 if (err) {
                                     console.error('Error deducting edit count:', err);
@@ -244,6 +247,7 @@ exports.deleteKeyword = (req, res) => {
         });
     });
 };
+
 
 
 
