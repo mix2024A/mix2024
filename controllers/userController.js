@@ -162,88 +162,107 @@ exports.deleteKeyword = (req, res) => {
     validateSession(req, res, () => {
         const idToDelete = req.body.id;
 
-        // 삭제할 키워드의 데이터를 먼저 가져옴
-        const getKeywordQuery = `
-            SELECT search_term, display_keyword, slot, created_at, note 
-            FROM registrations 
-            WHERE id = ? AND username = ?
+        // 먼저 사용자의 현재 수정 횟수를 확인
+        const checkEditCountQuery = `
+            SELECT editCount 
+            FROM users 
+            WHERE username = ?
         `;
 
-        connection.query(getKeywordQuery, [idToDelete, req.session.user], (err, results) => {
+        connection.query(checkEditCountQuery, [req.session.user], (err, results) => {
             if (err) {
-                console.error('Error fetching keyword data:', err);
+                console.error('Error checking edit count:', err);
                 return res.status(500).json({ error: 'Internal Server Error' });
             }
 
-            if (results.length > 0) {
-                const keyword = results[0];
-                const now = new Date();
-                const scheduledDeletionDate = new Date();
-                scheduledDeletionDate.setDate(scheduledDeletionDate.getDate() + 3);
-                scheduledDeletionDate.setHours(0, 0, 0, 0); // 자정으로 설정
+            const editCount = results[0].editCount;
+            if (editCount <= 0) {
+                return res.status(400).json({ error: '삭제 횟수가 부족합니다.' });
+            }
 
-                // 삭제된 키워드를 deleted_keywords 테이블에 삽입
-                const insertDeletedQuery = `
-                    INSERT INTO deleted_keywords (username, search_term, display_keyword, slot, created_at, deleted_at, note, scheduled_deletion_date)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                `;
+            // 삭제할 키워드의 데이터를 먼저 가져옴
+            const getKeywordQuery = `
+                SELECT search_term, display_keyword, slot, created_at, note 
+                FROM registrations 
+                WHERE id = ? AND username = ?
+            `;
 
-                connection.query(insertDeletedQuery, [
-                    req.session.user,
-                    keyword.search_term,
-                    keyword.display_keyword,
-                    keyword.slot,
-                    keyword.created_at,
-                    now,
-                    keyword.note,
-                    scheduledDeletionDate
-                ], (err) => {
-                    if (err) {
-                        console.error('Error inserting deleted keyword:', err);
-                        return res.status(500).json({ error: 'Internal Server Error' });
-                    }
+            connection.query(getKeywordQuery, [idToDelete, req.session.user], (err, results) => {
+                if (err) {
+                    console.error('Error fetching keyword data:', err);
+                    return res.status(500).json({ error: 'Internal Server Error' });
+                }
 
-                    // 기존 registrations 테이블에서 키워드 삭제
-                    const deleteQuery = `DELETE FROM registrations WHERE id = ? AND username = ?`;
-                    connection.query(deleteQuery, [idToDelete, req.session.user], (err) => {
+                if (results.length > 0) {
+                    const keyword = results[0];
+                    const now = new Date();
+                    const scheduledDeletionDate = new Date();
+                    scheduledDeletionDate.setDate(scheduledDeletionDate.getDate() + 3);
+                    scheduledDeletionDate.setHours(0, 0, 0, 0); // 자정으로 설정
+
+                    // 삭제된 키워드를 deleted_keywords 테이블에 삽입
+                    const insertDeletedQuery = `
+                        INSERT INTO deleted_keywords (username, search_term, display_keyword, slot, created_at, deleted_at, note, scheduled_deletion_date)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    `;
+
+                    connection.query(insertDeletedQuery, [
+                        req.session.user,
+                        keyword.search_term,
+                        keyword.display_keyword,
+                        keyword.slot,
+                        keyword.created_at,
+                        now,
+                        keyword.note,
+                        scheduledDeletionDate
+                    ], (err) => {
                         if (err) {
-                            console.error('Error deleting keyword:', err);
+                            console.error('Error inserting deleted keyword:', err);
                             return res.status(500).json({ error: 'Internal Server Error' });
                         }
 
-                        // 슬롯 복원
-                        const restoreSlotsQuery = `
-                            UPDATE users 
-                            SET remainingSlots = remainingSlots + ? 
-                            WHERE username = ?
-                        `;
-
-                        connection.query(restoreSlotsQuery, [keyword.slot, req.session.user], (err) => {
+                        // 기존 registrations 테이블에서 키워드 삭제
+                        const deleteQuery = `DELETE FROM registrations WHERE id = ? AND username = ?`;
+                        connection.query(deleteQuery, [idToDelete, req.session.user], (err) => {
                             if (err) {
-                                console.error('Error restoring slots:', err);
+                                console.error('Error deleting keyword:', err);
                                 return res.status(500).json({ error: 'Internal Server Error' });
                             }
 
-                            // 수정 횟수 차감 로직 추가
-                            const deductEditCountQuery = `
-                                UPDATE users
-                                SET editCount = GREATEST(0, editCount - 1)
+                            // 슬롯 복원
+                            const restoreSlotsQuery = `
+                                UPDATE users 
+                                SET remainingSlots = remainingSlots + ? 
                                 WHERE username = ?
                             `;
-                            connection.query(deductEditCountQuery, [req.session.user], (err) => {
+
+                            connection.query(restoreSlotsQuery, [keyword.slot, req.session.user], (err) => {
                                 if (err) {
-                                    console.error('Error deducting edit count:', err);
+                                    console.error('Error restoring slots:', err);
                                     return res.status(500).json({ error: 'Internal Server Error' });
                                 }
 
-                                res.json({ success: true });
+                                // 수정 횟수 차감 로직 추가
+                                const deductEditCountQuery = `
+                                    UPDATE users
+                                    SET editCount = GREATEST(0, editCount - 1)
+                                    WHERE username = ?
+                                `;
+                                connection.query(deductEditCountQuery, [req.session.user], (err) => {
+                                    if (err) {
+                                        console.error('Error deducting edit count:', err);
+                                        return res.status(500).json({ error: 'Internal Server Error' });
+                                    }
+
+                                    res.json({ success: true });
+                                });
                             });
                         });
                     });
-                });
-            } else {
-                res.status(404).json({ error: 'Keyword not found or you are not authorized to delete it.' });
-            }
+                } else {
+                    res.status(404).json({ error: 'Keyword not found or you are not authorized to delete it.' });
+                }
+            });
         });
     });
 };
