@@ -24,69 +24,67 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .catch(error => console.error('Error:', error));
 
-// 유저 정보 업데이트 함수
-function updateUserInfo() {
-    fetch('/user/user-info')
-        .then(response => response.json())
-        .then(data => {
-            if (data.username) {
-                document.getElementById('slot').textContent = data.slot;  // 구매슬롯 표시
-                document.getElementById('remainingSlots').textContent = data.remainingSlots;  // 잔여슬롯 표시
-                document.getElementById('editCount').textContent = data.editCount;  // 수정횟수 표시
-                
-                // 등록된 키워드 수 업데이트
-                fetch('/user/get-registered-search-terms')
-                    .then(response => response.json())
-                    .then(terms => {
-                        document.getElementById('registeredKeywords').textContent = terms.length || 0;
-                    });
-            }
-        })
-        .catch(error => console.error('Error updating user info:', error));
-}
-
-// 키워드 등록 버튼 클릭 시 서버로 데이터 전송
-document.getElementById('register-button').addEventListener('click', function() {
-    const searchTerm = document.getElementById('search-term').value ? document.getElementById('search-term').value.trim() : '';
-    const displayKeyword = document.getElementById('display-keyword').value ? document.getElementById('display-keyword').value.trim() : '';
-    const slot = document.getElementById('slot-input').value ? document.getElementById('slot-input').value.trim() : ''; 
-    const note = document.getElementById('note').value ? document.getElementById('note').value.trim() : '';
-
-    if (!searchTerm || !displayKeyword || !slot) {
-        alert('검색어, 노출 키워드 및 슬롯은 필수 입력 항목입니다.');
-        return;
+    // 유저 정보 업데이트 함수
+    function updateUserInfo() {
+        fetch('/user/user-info')
+            .then(response => response.json())
+            .then(data => {
+                if (data.username) {
+                    document.getElementById('slot').textContent = data.slot;  // 구매슬롯 표시
+                    document.getElementById('remainingSlots').textContent = data.remainingSlots;  // 잔여슬롯 표시
+                    document.getElementById('editCount').textContent = data.editCount;  // 수정횟수 표시
+                }
+            })
+            .catch(error => console.error('Error updating user info:', error));
     }
 
-    const data = {
-        searchTerm: searchTerm,
-        displayKeyword: displayKeyword,
-        slot: slot,
-        note: note
-    };
+    // 등록 버튼 클릭 시 서버로 데이터 전송
+    document.getElementById('register-button').addEventListener('click', function() {
+        const searchTerm = document.getElementById('search-term').value ? document.getElementById('search-term').value.trim() : '';
+        const displayKeyword = document.getElementById('display-keyword').value ? document.getElementById('display-keyword').value.trim() : '';
+        const slot = document.getElementById('slot-input').value ? document.getElementById('slot-input').value.trim() : ''; 
+        const note = document.getElementById('note').value ? document.getElementById('note').value.trim() : '';
 
-    fetch('/user/register-search-term', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(result => {
-        if (result.success) {
-            document.getElementById('search-term').value = '';
-            document.getElementById('display-keyword').value = '';
-            document.getElementById('slot-input').value = '';
-            document.getElementById('note').value = '';
-            
-            loadRegisteredSearchTerms();
-            updateUserInfo(); // 슬롯과 등록된 키워드 수 업데이트
-        } else {
-            alert('등록에 실패했습니다: ' + result.error);
+        console.log('Search Term:', searchTerm);
+        console.log('Display Keyword:', displayKeyword);
+        console.log('Slot:', slot);
+        console.log('Note:', note);
+
+        if (!searchTerm || !displayKeyword || !slot) {
+            alert('검색어, 노출 키워드 및 슬롯은 필수 입력 항목입니다.');
+            return;
         }
-    })
-    .catch(error => console.error('Error registering search term:', error));
-});
+
+        const data = {
+            searchTerm: searchTerm,
+            displayKeyword: displayKeyword,
+            slot: slot,
+            note: note
+        };
+
+        fetch('/user/register-search-term', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                document.getElementById('search-term').value = '';
+                document.getElementById('display-keyword').value = '';
+                document.getElementById('slot-input').value = '';
+                document.getElementById('note').value = '';
+                
+                loadRegisteredSearchTerms();
+                updateUserInfo(); // 슬롯 업데이트
+            } else {
+                alert('등록에 실패했습니다: ' + result.error);
+            }
+        })
+        .catch(error => console.error('Error registering search term:', error));
+    });
 
    // 현재 페이지 URL과 일치하는 네비게이션 링크에 active 클래스 추가
    const currentPath = window.location.pathname;
