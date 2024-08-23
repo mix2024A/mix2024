@@ -452,7 +452,7 @@ exports.handleExpiredSlots = () => {
     JOIN (
         SELECT username, SUM(amount) AS expiredSlotAmount
         FROM charge_history
-        WHERE expiry_date < CURDATE() AND deletion_date IS NOT NULL AND isSlotActive = 0
+        WHERE expiry_date < CURDATE() AND deletion_date IS NOT NULL
         GROUP BY username
     ) ch ON u.username = ch.username
     SET 
@@ -460,7 +460,7 @@ exports.handleExpiredSlots = () => {
         u.remainingSlots = GREATEST(0, u.remainingSlots - IFNULL(ch.expiredSlotAmount, 0)),
         u.editCount = GREATEST(0, u.editCount - IFNULL(ch.expiredSlotAmount, 0)),
         u.isSlotActive = 0  -- 사용자의 슬롯도 비활성화
-    WHERE ch.expiredSlotAmount > 0 AND u.isSlotActive = 1;  -- 이미 비활성화된 슬롯은 다시 처리하지 않음
+    WHERE ch.expiredSlotAmount > 0 AND u.isSlotActive = 1;
     `;
     
     connection.query(disableSlotsQuery, (err, results) => {
@@ -470,6 +470,7 @@ exports.handleExpiredSlots = () => {
             console.log('User slots deactivated:', results.affectedRows);
         }
     });
+    
     
 
     // 삭제 예정인 슬롯 삭제
