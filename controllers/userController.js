@@ -180,23 +180,24 @@ exports.deleteKeyword = (req, res) => {
 
                 // 삭제된 키워드를 deleted_keywords 테이블에 삽입
                 const insertDeletedQuery = `
-                    INSERT INTO deleted_keywords (search_term, display_keyword, slot, created_at, deleted_at, note)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                `;
-
-                connection.query(insertDeletedQuery, [
-                    keyword.search_term,
-                    keyword.display_keyword,
-                    keyword.slot,
-                    keyword.created_at,
-                    now,
-                    keyword.note
-                ], (err) => {
-                    if (err) {
-                        console.error('Error inserting deleted keyword:', err);
-                        return res.status(500).json({ error: 'Internal Server Error' });
-                    }
-
+                INSERT INTO deleted_keywords (username, search_term, display_keyword, slot, created_at, deleted_at, note)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            `;
+            
+            connection.query(insertDeletedQuery, [
+                req.session.user, // 현재 사용자의 username 추가
+                keyword.search_term,
+                keyword.display_keyword,
+                keyword.slot,
+                keyword.created_at,
+                now,
+                keyword.note
+            ], (err) => {
+                if (err) {
+                    console.error('Error inserting deleted keyword:', err);
+                    return res.status(500).json({ error: 'Internal Server Error' });
+                }
+            
                     // 기존 registrations 테이블에서 키워드 삭제
                     const deleteQuery = `DELETE FROM registrations WHERE id = ? AND username = ?`;
                     connection.query(deleteQuery, [idToDelete, req.session.user], (err) => {
