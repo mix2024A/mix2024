@@ -437,9 +437,7 @@ input[type="number"]::-webkit-outer-spin-button {
     margin: 0;
 }
 
-input[type="number"] {
-    -moz-appearance: textfield;
-}
+
 
 /* 모달 버튼 통합 스타일 */
 .modal-button {
