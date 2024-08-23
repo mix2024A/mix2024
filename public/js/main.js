@@ -119,9 +119,9 @@ function updateUserInfo() {
                 const tableBody = document.querySelector('tbody');
                 tableBody.innerHTML = ''; 
                 
-                data.forEach((item, index) => {
+                data.reverse().forEach((item, index) => {
                     const date = new Date(item.created_at);
-                    const formattedDate = date.toISOString().split('T')[0]; 
+                    const formattedDate = date.toISOString().split('T')[0];
 
                     const row = document.createElement('tr');
                     row.setAttribute('data-id', item.id); // 행에 id 속성 추가
