@@ -30,17 +30,16 @@ exports.getUserInfo = (req, res) => {
     });
 };
 
-// 삭제된 키워드 가져오기 함수 수정
+// 삭제된 키워드 가져오기 함수 추가
 exports.getDeletedKeywords = (req, res) => {
     validateSession(req, res, () => {
         const query = `
             SELECT search_term, display_keyword, slot, created_at, deleted_at, note
             FROM deleted_keywords
-            WHERE username = ?  -- 현재 로그인한 사용자와 연관된 키워드만 가져옴
             ORDER BY deleted_at DESC
         `;
         
-        connection.query(query, [req.session.user], (err, results) => {
+        connection.query(query, (err, results) => {
             if (err) {
                 console.error('Error fetching deleted keywords:', err);
                 return res.status(500).json({ error: 'Internal Server Error' });
@@ -49,7 +48,6 @@ exports.getDeletedKeywords = (req, res) => {
         });
     });
 };
-
 
 // 슬롯 사용 함수
 exports.useSlot = (req, res) => {
@@ -182,12 +180,11 @@ exports.deleteKeyword = (req, res) => {
 
                 // 삭제된 키워드를 deleted_keywords 테이블에 삽입
                 const insertDeletedQuery = `
-                    INSERT INTO deleted_keywords (username, search_term, display_keyword, slot, created_at, deleted_at, note)
+                    INSERT INTO deleted_keywords (search_term, display_keyword, slot, created_at, deleted_at, note)
                     VALUES (?, ?, ?, ?, ?, ?)
                 `;
 
                 connection.query(insertDeletedQuery, [
-                    req.session.user,
                     keyword.search_term,
                     keyword.display_keyword,
                     keyword.slot,
