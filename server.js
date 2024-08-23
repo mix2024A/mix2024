@@ -3,7 +3,6 @@ const session = require('express-session');
 const path = require('path');
 const cron = require('node-cron');
 const adminController = require('./controllers/adminController');  // 경로가 정확해야 합니다.
-const userController = require('./controllers/userController');
 
 const app = express();
 const port = 8080;
@@ -86,40 +85,16 @@ app.get('/delkeywords', (req, res) => {
 });
 
 // 크론 작업 설정
-
-// 크론 작업 설정
-
-// 1. 먼저 handleSlotExpiry 작업을 실행합니다.
-cron.schedule('* * * * *', async () => {
-    console.log("Running handleSlotExpiry...");
-    
-    try {
-        await userController.handleSlotExpiry(); // 비동기 작업 대기
-        console.log("Slot expiry handled successfully.");
-        
-        // 2. handleSlotExpiry가 완료된 후 handleExpiredSlots 작업을 실행합니다.
-        console.log("Calling handleExpiredSlots...");
-        await adminController.handleExpiredSlots(); // handleSlotExpiry 완료 후 실행
-    } catch (error) {
-        console.error("Error in scheduled tasks:", error);
-    }
+cron.schedule('* * * * *', () => {
+    console.log("Calling handleExpiredSlots...");
+    adminController.handleExpiredSlots();  // 슬롯 만료 처리 함수 호출
 });
-
 
 // 삭제된 키워드 자동 삭제 크론 작업
-cron.schedule('* * * * *', async () => {
+cron.schedule('* * * * *', () => {  // 매일 자정에 실행
     console.log("Calling deleteExpiredKeywords...");
-    
-    try {
-        await userController.deleteExpiredKeywords(); // 3일 뒤 자정에 도래한 키워드 삭제 함수 호출
-        console.log("Expired keywords deleted successfully.");
-    } catch (error) {
-        console.error("Error in deleteExpiredKeywords task:", error);
-    }
+    userController.deleteExpiredKeywords();  // 3일 뒤 자정에 도래한 키워드 삭제 함수 호출
 });
-
-
-
 
 // 서버 실행
 app.listen(port, () => { 
