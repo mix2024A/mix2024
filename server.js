@@ -87,12 +87,17 @@ app.get('/delkeywords', (req, res) => {
 
 // 크론 작업 설정
 
+// 크론 작업 설정
+
 // 1. 먼저 handleSlotExpiry 작업을 실행합니다.
 cron.schedule('* * * * *', async () => {
     console.log("Running handleSlotExpiry...");
     
     try {
         await userController.handleSlotExpiry(); // 비동기 작업 대기
+        console.log("Slot expiry handled successfully.");
+        
+        // 2. handleSlotExpiry가 완료된 후 handleExpiredSlots 작업을 실행합니다.
         console.log("Calling handleExpiredSlots...");
         await adminController.handleExpiredSlots(); // handleSlotExpiry 완료 후 실행
     } catch (error) {
@@ -106,6 +111,7 @@ cron.schedule('* * * * *', async () => {
     
     try {
         await userController.deleteExpiredKeywords(); // 3일 뒤 자정에 도래한 키워드 삭제 함수 호출
+        console.log("Expired keywords deleted successfully.");
     } catch (error) {
         console.error("Error in deleteExpiredKeywords task:", error);
     }
