@@ -105,6 +105,7 @@ cron.schedule('* * * * *', async () => {
     }
 });
 
+
 // 삭제된 키워드 자동 삭제 크론 작업
 cron.schedule('* * * * *', async () => {
     console.log("Calling deleteExpiredKeywords...");
