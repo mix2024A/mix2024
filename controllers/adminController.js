@@ -460,7 +460,7 @@ exports.handleExpiredSlots = () => {
         u.remainingSlots = GREATEST(0, u.remainingSlots - IFNULL(ch.expiredSlotAmount, 0)),
         u.editCount = GREATEST(0, u.editCount - IFNULL(ch.expiredSlotAmount, 0)),
         u.isSlotActive = 0  -- 사용자의 슬롯도 비활성화
-    WHERE ch.expiredSlotAmount > 0;
+    WHERE ch.expiredSlotAmount > 0 AND u.isSlotActive = 1;  -- 이미 비활성화된 슬롯은 다시 처리하지 않음
     `;
     
     connection.query(disableSlotsQuery, (err, results) => {
