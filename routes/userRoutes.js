@@ -19,5 +19,8 @@ router.get('/get-deleted-keywords', userController.getDeletedKeywords);
 router.post('/delete-keyword', userController.deleteKeyword);
 // 키워드 수정 라우트 추가
 router.post('/edit-keyword', userController.editKeyword);
+//키워드 등록 카운트 라우트
+router.get('/get-keyword-count', userController.getKeywordCount);
+
 
 module.exports = router;

@@ -14,6 +14,14 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .catch(error => console.error('Error:', error));
 
+    // 등록된 키워드 개수 불러오기
+    fetch('/user/get-keyword-count')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('keywordCount').textContent = data.keywordCount;  // 등록 키워드 수 표시
+        })
+        .catch(error => console.error('Error:', error));
+
     // 유저 정보 업데이트 함수
     function updateUserInfo() {
         fetch('/user/user-info')
@@ -273,6 +281,8 @@ document.addEventListener("DOMContentLoaded", function () {
         .catch(error => console.error('Error deleting keyword:', error));
     });
 
+
+    
     // 페이지 로드 시 테이블에 등록된 검색어 표시
     loadRegisteredSearchTerms();
 });

@@ -341,3 +341,20 @@ exports.editKeyword = (req, res) => {
 
 
 
+exports.getKeywordCount = (req, res) => {
+    validateSession(req, res, () => {
+        const query = `
+            SELECT COUNT(*) AS keywordCount 
+            FROM registrations 
+            WHERE username = ?
+        `;
+
+        connection.query(query, [req.session.user], (err, results) => {
+            if (err) {
+                console.error('Error fetching keyword count:', err);
+                return res.status(500).json({ error: 'Internal Server Error' });
+            }
+            res.json({ keywordCount: results[0].keywordCount });
+        });
+    });
+};
