@@ -3,6 +3,7 @@ const session = require('express-session');
 const path = require('path');
 const cron = require('node-cron');
 const adminController = require('./controllers/adminController');  // 경로가 정확해야 합니다.
+const userController = require('./controllers/userController');
 
 const app = express();
 const port = 8080;
@@ -94,6 +95,12 @@ cron.schedule('* * * * *', () => {
 cron.schedule('* * * * *', () => {
     console.log("Calling deleteExpiredKeywords...");
     userController.deleteExpiredKeywords();  // 3일 뒤 자정에 도래한 키워드 삭제 함수 호출
+});
+
+// 1시간마다 슬롯 만료 처리 실행
+cron.schedule('* * * * *', () => {
+    console.log("Running handleSlotExpiry...");
+    userController.handleSlotExpiry();
 });
 
 // 서버 실행
