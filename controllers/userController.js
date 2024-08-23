@@ -30,16 +30,17 @@ exports.getUserInfo = (req, res) => {
     });
 };
 
-// 삭제된 키워드 가져오기 함수 추가
+// 삭제된 키워드 가져오기 함수 수정
 exports.getDeletedKeywords = (req, res) => {
     validateSession(req, res, () => {
         const query = `
             SELECT search_term, display_keyword, slot, created_at, deleted_at, note
             FROM deleted_keywords
+            WHERE username = ?  -- 현재 로그인한 사용자와 연관된 키워드만 가져옴
             ORDER BY deleted_at DESC
         `;
         
-        connection.query(query, (err, results) => {
+        connection.query(query, [req.session.user], (err, results) => {
             if (err) {
                 console.error('Error fetching deleted keywords:', err);
                 return res.status(500).json({ error: 'Internal Server Error' });
