@@ -320,7 +320,7 @@ exports.extendChargeHistory = (req, res) => {
     }
 
     const checkExpiryQuery = `
-        SELECT expiry_date, username, amount, isSlotActive
+        SELECT expiry_date, username, amount
         FROM charge_history
         WHERE id = ?
     `;
@@ -336,10 +336,8 @@ exports.extendChargeHistory = (req, res) => {
             const currentDate = new Date();
             const username = results[0].username;
             const amount = results[0].amount;
-            const isSlotActive = results[0].isSlotActive;
 
-            if (expiryDate < currentDate || isSlotActive === 0) { // 만료된 경우 또는 비활성화된 슬롯
-                console.log(`Extending expired slots for user: ${username}, Amount: ${amount}`);
+            if (expiryDate < currentDate) { // 만료된 경우
                 const extendQuery = `
                     UPDATE charge_history
                     SET expiry_date = DATE_ADD(expiry_date, INTERVAL 30 DAY), deletion_date = NULL
@@ -373,6 +371,7 @@ exports.extendChargeHistory = (req, res) => {
                     }
                 });
             } else {
+                // 만료되지 않은 슬롯도 30일 연장
                 const extendOnlyQuery = `
                     UPDATE charge_history
                     SET expiry_date = DATE_ADD(expiry_date, INTERVAL 30 DAY), deletion_date = NULL
@@ -457,10 +456,10 @@ exports.handleExpiredSlots = () => {
         u.slot = GREATEST(0, u.slot - LEAST(u.slot, ch.expiredSlotAmount)),
         u.remainingSlots = GREATEST(0, u.remainingSlots - LEAST(u.remainingSlots, ch.expiredSlotAmount)),
         u.editCount = GREATEST(0, u.editCount - LEAST(u.editCount, ch.expiredSlotAmount)),
-        u.isSlotActive = IF(ch.expiredSlotAmount > 0, 0, u.isSlotActive)
-    WHERE ch.expiredSlotAmount > 0
-      AND u.isSlotActive = 1;  -- 이미 비활성화된 슬롯은 다시 처리하지 않음
+        u.isSlotActive = 0  -- 만료된 슬롯이 비활성화되도록 설정
+    WHERE ch.expiredSlotAmount > 0;
 `;
+
 
     connection.query(disableSlotsQuery, (err, results) => {
         if (err) {
@@ -472,8 +471,9 @@ exports.handleExpiredSlots = () => {
 
     const deleteQuery = `
     DELETE FROM charge_history 
-    WHERE deletion_date <= CURDATE() AND deletion_date IS NOT NULL
+    WHERE deletion_date <= CURDATE() AND deletion_date IS NOT NULL;
 `;
+
 
     connection.query(deleteQuery, (err, results) => {
         if (err) {
