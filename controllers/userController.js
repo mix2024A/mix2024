@@ -365,89 +365,86 @@ exports.getKeywordCount = (req, res) => {
 };
 
 // 슬롯 만료 처리 함수 수정
-exports.handleSlotExpiry = async (req, res) => {
+exports.handleSlotExpiry = async () => {
     try {
-        const username = req.session.user;
-
-        // 사용자의 현재 남은 슬롯 수를 가져옵니다.
+        // 모든 사용자에 대해 슬롯 만료를 처리합니다.
         const getRemainingSlotsQuery = `
-            SELECT remainingSlots 
+            SELECT username, remainingSlots 
             FROM users 
-            WHERE username = ?
+            WHERE remainingSlots > 0
         `;
-        const results = await queryAsync(getRemainingSlotsQuery, [username]);
-        let remainingSlots = results[0].remainingSlots;
+        const users = await queryAsync(getRemainingSlotsQuery);
 
-        if (remainingSlots <= 0) {
-            return res.status(400).json({ error: '슬롯이 부족합니다.' });
-        }
+        for (const user of users) {
+            let remainingSlots = user.remainingSlots;
+            let username = user.username;
 
-        // 오래된 순서대로 키워드 목록을 가져옵니다.
-        const getOldestKeywordsQuery = `
-            SELECT * 
-            FROM registrations 
-            WHERE username = ? 
-            ORDER BY created_at ASC
-        `;
-        const keywords = await queryAsync(getOldestKeywordsQuery, [username]);
+            // 오래된 순서대로 키워드 목록을 가져옵니다.
+            const getOldestKeywordsQuery = `
+                SELECT * 
+                FROM registrations 
+                WHERE username = ? 
+                ORDER BY created_at ASC
+            `;
+            const keywords = await queryAsync(getOldestKeywordsQuery, [username]);
 
-        const now = new Date();
-        const scheduledDeletionDate = new Date();
-        scheduledDeletionDate.setDate(scheduledDeletionDate.getDate() + 3);
-        scheduledDeletionDate.setHours(0, 0, 0, 0); // 자정으로 설정
+            const now = new Date();
+            const scheduledDeletionDate = new Date();
+            scheduledDeletionDate.setDate(scheduledDeletionDate.getDate() + 3);
+            scheduledDeletionDate.setHours(0, 0, 0, 0); // 자정으로 설정
 
-        let slotsToExpire = remainingSlots;
+            let slotsToExpire = remainingSlots;
 
-        for (let keyword of keywords) {
-            if (slotsToExpire <= 0) break;
+            for (let keyword of keywords) {
+                if (slotsToExpire <= 0) break;
 
-            if (keyword.slot <= slotsToExpire) {
-                // 키워드를 삭제 키워드로 이동
-                const insertDeletedQuery = `
-                    INSERT INTO deleted_keywords (username, search_term, display_keyword, slot, created_at, deleted_at, note, scheduled_deletion_date)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                `;
-                await queryAsync(insertDeletedQuery, [
-                    username,
-                    keyword.search_term,
-                    keyword.display_keyword,
-                    keyword.slot,
-                    keyword.created_at,
-                    now,
-                    keyword.note,
-                    scheduledDeletionDate
-                ]);
+                if (keyword.slot <= slotsToExpire) {
+                    // 키워드를 삭제 키워드로 이동
+                    const insertDeletedQuery = `
+                        INSERT INTO deleted_keywords (username, search_term, display_keyword, slot, created_at, deleted_at, note, scheduled_deletion_date)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    `;
+                    await queryAsync(insertDeletedQuery, [
+                        username,
+                        keyword.search_term,
+                        keyword.display_keyword,
+                        keyword.slot,
+                        keyword.created_at,
+                        now,
+                        keyword.note,
+                        scheduledDeletionDate
+                    ]);
 
-                // 기존 registrations 테이블에서 키워드 삭제
-                const deleteQuery = `DELETE FROM registrations WHERE id = ?`;
-                await queryAsync(deleteQuery, [keyword.id]);
+                    // 기존 registrations 테이블에서 키워드 삭제
+                    const deleteQuery = `DELETE FROM registrations WHERE id = ?`;
+                    await queryAsync(deleteQuery, [keyword.id]);
 
-                slotsToExpire -= keyword.slot;
-            } else {
-                // 키워드를 슬롯만 남은 만큼 줄임
-                const updateKeywordSlotQuery = `
-                    UPDATE registrations 
-                    SET slot = slot - ?
-                    WHERE id = ?
-                `;
-                await queryAsync(updateKeywordSlotQuery, [slotsToExpire, keyword.id]);
+                    slotsToExpire -= keyword.slot;
+                } else {
+                    // 키워드를 슬롯만 남은 만큼 줄임
+                    const updateKeywordSlotQuery = `
+                        UPDATE registrations 
+                        SET slot = slot - ?
+                        WHERE id = ?
+                    `;
+                    await queryAsync(updateKeywordSlotQuery, [slotsToExpire, keyword.id]);
 
-                slotsToExpire = 0;
+                    slotsToExpire = 0;
+                }
             }
+
+            // 처리 후 남은 슬롯 수 업데이트
+            const updateRemainingSlotsQuery = `
+                UPDATE users 
+                SET remainingSlots = ? 
+                WHERE username = ?
+            `;
+            await queryAsync(updateRemainingSlotsQuery, [slotsToExpire, username]);
         }
 
-        // 처리 후 남은 슬롯 수 업데이트
-        const updateRemainingSlotsQuery = `
-            UPDATE users 
-            SET remainingSlots = ? 
-            WHERE username = ?
-        `;
-        await queryAsync(updateRemainingSlotsQuery, [slotsToExpire, username]);
-
-        res.json({ success: true });
+        console.log("Slot expiry handled successfully.");
     } catch (err) {
         console.error('Error in handleSlotExpiry:', err);
-        res.status(500).json({ error: 'Internal Server Error' });
     }
 };
 
@@ -491,5 +488,23 @@ exports.extendSlot = async (req, res) => {
     } catch (err) {
         console.error('Error in extendSlot:', err);
         res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
+
+// userController.js
+
+exports.deleteExpiredKeywords = async () => {
+    try {
+        const now = new Date();
+
+        const deleteQuery = `
+            DELETE FROM deleted_keywords 
+            WHERE scheduled_deletion_date <= ?
+        `;
+        await queryAsync(deleteQuery, [now]);
+
+        console.log("Expired keywords deleted successfully.");
+    } catch (err) {
+        console.error('Error in deleteExpiredKeywords:', err);
     }
 };
