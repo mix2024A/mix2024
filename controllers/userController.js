@@ -342,19 +342,22 @@ exports.editKeyword = (req, res) => {
 
 
 exports.getKeywordCount = (req, res) => {
-    validateSession(req, res, () => {
-        const query = `
-            SELECT COUNT(*) AS keywordCount 
-            FROM registrations 
-            WHERE username = ?
-        `;
+    const username = req.session.user;
 
-        connection.query(query, [req.session.user], (err, results) => {
-            if (err) {
-                console.error('Error fetching keyword count:', err);
-                return res.status(500).json({ error: 'Internal Server Error' });
-            }
-            res.json({ keywordCount: results[0].keywordCount });
-        });
+    const query = `
+        SELECT COUNT(*) AS keywordCount
+        FROM registrations
+        WHERE username = ?
+    `;
+
+    connection.query(query, [username], (err, results) => {
+        if (err) {
+            console.error('Error fetching keyword count:', err);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+
+        const keywordCount = results[0].keywordCount || 0;  // 결과가 없으면 0으로 설정
+        res.json({ keywordCount: keywordCount });
     });
 };
+
