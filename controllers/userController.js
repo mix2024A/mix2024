@@ -183,7 +183,7 @@ exports.deleteKeyword = (req, res) => {
 
                 // 삭제된 키워드를 deleted_keywords 테이블에 삽입
                 const insertDeletedQuery = `
-                    INSERT INTO deleted_keywords (search_term, display_keyword, slot, created_at, deleted_at, note)
+                    INSERT INTO deleted_keywords (username, search_term, display_keyword, slot, created_at, deleted_at, note)
                     VALUES (?, ?, ?, ?, ?, ?)
                 `;
 
