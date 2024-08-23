@@ -24,19 +24,34 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .catch(error => console.error('Error:', error));
 
-    // 유저 정보 업데이트 함수
-    function updateUserInfo() {
-        fetch('/user/user-info')
-            .then(response => response.json())
-            .then(data => {
-                if (data.username) {
-                    document.getElementById('slot').textContent = data.slot;  // 구매슬롯 표시
-                    document.getElementById('remainingSlots').textContent = data.remainingSlots;  // 잔여슬롯 표시
-                    document.getElementById('editCount').textContent = data.editCount;  // 수정횟수 표시
-                }
-            })
-            .catch(error => console.error('Error updating user info:', error));
-    }
+// 유저 정보 업데이트 함수
+function updateUserInfo() {
+    fetch('/user/user-info')
+        .then(response => response.json())
+        .then(data => {
+            if (data.username) {
+                document.getElementById('slot').textContent = data.slot;  // 구매슬롯 표시
+                document.getElementById('remainingSlots').textContent = data.remainingSlots;  // 잔여슬롯 표시
+                document.getElementById('editCount').textContent = data.editCount;  // 수정횟수 표시
+
+                // 등록된 키워드 개수 불러오기 및 업데이트
+                fetch('/user/get-keyword-count')
+                    .then(response => response.json())
+                    .then(data => {
+                        const keywordCount = data.keywordCount || 0;  // 값이 없을 때 0으로 설정
+                        const keywordCountElement = document.getElementById('keywordCount');
+                        if (keywordCountElement) {
+                            keywordCountElement.textContent = keywordCount;  // 등록 키워드 수 표시
+                        } else {
+                            console.error("keywordCount element is missing.");
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+        })
+        .catch(error => console.error('Error updating user info:', error));
+}
+
 
     // 등록 버튼 클릭 시 서버로 데이터 전송
     document.getElementById('register-button').addEventListener('click', function() {
@@ -76,14 +91,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 document.getElementById('display-keyword').value = '';
                 document.getElementById('slot-input').value = '';
                 document.getElementById('note').value = '';
-                
+        
                 loadRegisteredSearchTerms();
-                updateUserInfo(); // 슬롯 업데이트
+                updateUserInfo(); // 슬롯 및 키워드 수 업데이트
             } else {
                 alert('등록에 실패했습니다: ' + result.error);
             }
         })
         .catch(error => console.error('Error registering search term:', error));
+        
     });
 
    // 현재 페이지 URL과 일치하는 네비게이션 링크에 active 클래스 추가
@@ -275,12 +291,13 @@ document.addEventListener("DOMContentLoaded", function () {
             if (result.success) {
                 document.getElementById('deleteModal').style.display = 'none';
                 loadRegisteredSearchTerms(); // 테이블 갱신
-                updateUserInfo(); // 슬롯 업데이트
+                updateUserInfo(); // 슬롯 및 키워드 수 업데이트
             } else {
                 alert('키워드 삭제에 실패했습니다: ' + result.error);
             }
         })
         .catch(error => console.error('Error deleting keyword:', error));
+        
     });
 
 
