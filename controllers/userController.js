@@ -30,17 +30,16 @@ exports.getUserInfo = (req, res) => {
     });
 };
 
-// 삭제된 키워드 가져오기 함수 수정
+// 삭제된 키워드 가져오기 함수 추가
 exports.getDeletedKeywords = (req, res) => {
     validateSession(req, res, () => {
         const query = `
             SELECT search_term, display_keyword, slot, created_at, deleted_at, note
             FROM deleted_keywords
-            WHERE username = ?  -- 현재 로그인한 사용자와 연관된 키워드만 가져옴
             ORDER BY deleted_at DESC
         `;
         
-        connection.query(query, [req.session.user], (err, results) => {
+        connection.query(query, (err, results) => {
             if (err) {
                 console.error('Error fetching deleted keywords:', err);
                 return res.status(500).json({ error: 'Internal Server Error' });
@@ -178,25 +177,20 @@ exports.deleteKeyword = (req, res) => {
             if (results.length > 0) {
                 const keyword = results[0];
                 const now = new Date();
-                const scheduledDeletionDate = new Date();
-                scheduledDeletionDate.setDate(scheduledDeletionDate.getDate() + 3);
-                scheduledDeletionDate.setHours(0, 0, 0, 0); // 자정으로 설정
 
                 // 삭제된 키워드를 deleted_keywords 테이블에 삽입
                 const insertDeletedQuery = `
-                    INSERT INTO deleted_keywords (username, search_term, display_keyword, slot, created_at, deleted_at, note, scheduled_deletion_date)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO deleted_keywords (search_term, display_keyword, slot, created_at, deleted_at, note)
+                    VALUES (?, ?, ?, ?, ?, ?)
                 `;
 
                 connection.query(insertDeletedQuery, [
-                    req.session.user,
                     keyword.search_term,
                     keyword.display_keyword,
                     keyword.slot,
                     keyword.created_at,
                     now,
-                    keyword.note,
-                    scheduledDeletionDate
+                    keyword.note
                 ], (err) => {
                     if (err) {
                         console.error('Error inserting deleted keyword:', err);
@@ -224,20 +218,7 @@ exports.deleteKeyword = (req, res) => {
                                 return res.status(500).json({ error: 'Internal Server Error' });
                             }
 
-                            // 수정 횟수 차감 로직 추가
-                            const deductEditCountQuery = `
-                                UPDATE users
-                                SET editCount = GREATEST(0, editCount - 1)
-                                WHERE username = ?
-                            `;
-                            connection.query(deductEditCountQuery, [req.session.user], (err) => {
-                                if (err) {
-                                    console.error('Error deducting edit count:', err);
-                                    return res.status(500).json({ error: 'Internal Server Error' });
-                                }
-
-                                res.json({ success: true });
-                            });
+                            res.json({ success: true });
                         });
                     });
                 });
@@ -247,8 +228,6 @@ exports.deleteKeyword = (req, res) => {
         });
     });
 };
-
-
 
 
 exports.editKeyword = (req, res) => {
