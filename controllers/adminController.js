@@ -456,13 +456,13 @@ exports.handleExpiredSlots = () => {
         GROUP BY username
     ) ch ON u.username = ch.username
     SET 
-        u.slot = GREATEST(0, u.slot - LEAST(u.slot, ch.expiredSlotAmount)),
-        u.remainingSlots = GREATEST(0, u.remainingSlots - LEAST(u.remainingSlots, ch.expiredSlotAmount)),
-        u.editCount = GREATEST(0, u.editCount - LEAST(u.editCount, ch.expiredSlotAmount)),
+        u.slot = GREATEST(0, u.slot - IFNULL(ch.expiredSlotAmount, 0)),
+        u.remainingSlots = GREATEST(0, u.remainingSlots - IFNULL(ch.expiredSlotAmount, 0)),
+        u.editCount = GREATEST(0, u.editCount - IFNULL(ch.expiredSlotAmount, 0)),
         u.isSlotActive = 0  -- 사용자의 슬롯도 비활성화
-    WHERE ch.expiredSlotAmount > 0 AND u.isSlotActive = 1;
+    WHERE ch.expiredSlotAmount > 0;
     `;
-
+    
     connection.query(disableSlotsQuery, (err, results) => {
         if (err) {
             console.error('Failed to deactivate user slots:', err);
@@ -470,6 +470,7 @@ exports.handleExpiredSlots = () => {
             console.log('User slots deactivated:', results.affectedRows);
         }
     });
+    
 
     // 삭제 예정인 슬롯 삭제
     const deleteQuery = `
