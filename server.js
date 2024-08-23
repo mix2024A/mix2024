@@ -90,11 +90,7 @@ cron.schedule('* * * * *', () => {
     adminController.handleExpiredSlots();  // 슬롯 만료 처리 함수 호출
 });
 
-// 삭제된 키워드 자동 삭제 크론 작업
-cron.schedule('* * * * *', () => {  // 매일 자정에 실행
-    console.log("Calling deleteExpiredKeywords...");
-    userController.deleteExpiredKeywords();  // 3일 뒤 자정에 도래한 키워드 삭제 함수 호출
-});
+
 
 // 서버 실행
 app.listen(port, () => { 
