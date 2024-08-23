@@ -33,10 +33,16 @@ document.addEventListener("DOMContentLoaded", function () {
                     document.getElementById('slot').textContent = data.slot;  // 구매슬롯 표시
                     document.getElementById('remainingSlots').textContent = data.remainingSlots;  // 잔여슬롯 표시
                     document.getElementById('editCount').textContent = data.editCount;  // 수정횟수 표시
-                }
-            })
-            .catch(error => console.error('Error updating user info:', error));
-    }
+                // 등록된 키워드 수 업데이트
+                fetch('/user/get-registered-search-terms')
+                    .then(response => response.json())
+                    .then(terms => {
+                        document.getElementById('registeredKeywords').textContent = terms.length || 0;
+                    });
+            }
+        })
+        .catch(error => console.error('Error updating user info:', error));
+}
 
     // 등록 버튼 클릭 시 서버로 데이터 전송
     document.getElementById('register-button').addEventListener('click', function() {
