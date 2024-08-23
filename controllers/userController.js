@@ -1,4 +1,7 @@
 const connection = require('../config/database');
+const util = require('util');
+const queryAsync = util.promisify(connection.query).bind(connection);
+
 
 // 세션 사용자 검증 함수
 function validateSession(req, res, next) {
@@ -361,9 +364,9 @@ exports.getKeywordCount = (req, res) => {
     });
 };
 
-// 슬롯 만료 처리 함수 추가
-exports.handleSlotExpiry = (req, res) => {
-    validateSession(req, res, () => {
+// 슬롯 만료 처리 함수 수정
+exports.handleSlotExpiry = async (req, res) => {
+    try {
         const username = req.session.user;
 
         // 사용자의 현재 남은 슬롯 수를 가져옵니다.
@@ -372,115 +375,84 @@ exports.handleSlotExpiry = (req, res) => {
             FROM users 
             WHERE username = ?
         `;
+        const results = await queryAsync(getRemainingSlotsQuery, [username]);
+        let remainingSlots = results[0].remainingSlots;
 
-        connection.query(getRemainingSlotsQuery, [username], (err, results) => {
-            if (err) {
-                console.error('Error fetching remaining slots:', err);
-                return res.status(500).json({ error: 'Internal Server Error' });
-            }
+        if (remainingSlots <= 0) {
+            return res.status(400).json({ error: '슬롯이 부족합니다.' });
+        }
 
-            let remainingSlots = results[0].remainingSlots;
+        // 오래된 순서대로 키워드 목록을 가져옵니다.
+        const getOldestKeywordsQuery = `
+            SELECT * 
+            FROM registrations 
+            WHERE username = ? 
+            ORDER BY created_at ASC
+        `;
+        const keywords = await queryAsync(getOldestKeywordsQuery, [username]);
 
-            if (remainingSlots <= 0) {
-                return res.status(400).json({ error: '슬롯이 부족합니다.' });
-            }
+        const now = new Date();
+        const scheduledDeletionDate = new Date();
+        scheduledDeletionDate.setDate(scheduledDeletionDate.getDate() + 3);
+        scheduledDeletionDate.setHours(0, 0, 0, 0); // 자정으로 설정
 
-            // 오래된 순서대로 키워드 목록을 가져옵니다.
-            const getOldestKeywordsQuery = `
-                SELECT * 
-                FROM registrations 
-                WHERE username = ? 
-                ORDER BY created_at ASC
-            `;
+        let slotsToExpire = remainingSlots;
 
-            connection.query(getOldestKeywordsQuery, [username], (err, keywords) => {
-                if (err) {
-                    console.error('Error fetching oldest keywords:', err);
-                    return res.status(500).json({ error: 'Internal Server Error' });
-                }
+        for (let keyword of keywords) {
+            if (slotsToExpire <= 0) break;
 
-                const now = new Date();
-                const scheduledDeletionDate = new Date();
-                scheduledDeletionDate.setDate(scheduledDeletionDate.getDate() + 3);
-                scheduledDeletionDate.setHours(0, 0, 0, 0); // 자정으로 설정
-
-                let slotsToExpire = remainingSlots;
-                
-                for (let keyword of keywords) {
-                    if (slotsToExpire <= 0) break;
-
-                    if (keyword.slot <= slotsToExpire) {
-                        // 키워드를 삭제 키워드로 이동
-                        const insertDeletedQuery = `
-                            INSERT INTO deleted_keywords (username, search_term, display_keyword, slot, created_at, deleted_at, note, scheduled_deletion_date)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                        `;
-
-                        connection.query(insertDeletedQuery, [
-                            username,
-                            keyword.search_term,
-                            keyword.display_keyword,
-                            keyword.slot,
-                            keyword.created_at,
-                            now,
-                            keyword.note,
-                            scheduledDeletionDate
-                        ], (err) => {
-                            if (err) {
-                                console.error('Error inserting deleted keyword:', err);
-                                return res.status(500).json({ error: 'Internal Server Error' });
-                            }
-
-                            // 기존 registrations 테이블에서 키워드 삭제
-                            const deleteQuery = `DELETE FROM registrations WHERE id = ?`;
-                            connection.query(deleteQuery, [keyword.id], (err) => {
-                                if (err) {
-                                    console.error('Error deleting keyword:', err);
-                                    return res.status(500).json({ error: 'Internal Server Error' });
-                                }
-                            });
-                        });
-
-                        slotsToExpire -= keyword.slot;
-                    } else {
-                        // 키워드를 슬롯만 남은 만큼 줄임
-                        const updateKeywordSlotQuery = `
-                            UPDATE registrations 
-                            SET slot = slot - ?
-                            WHERE id = ?
-                        `;
-                        connection.query(updateKeywordSlotQuery, [slotsToExpire, keyword.id], (err) => {
-                            if (err) {
-                                console.error('Error updating keyword slot:', err);
-                                return res.status(500).json({ error: 'Internal Server Error' });
-                            }
-                        });
-
-                        slotsToExpire = 0;
-                    }
-                }
-
-                // 처리 후 남은 슬롯 수 업데이트
-                const updateRemainingSlotsQuery = `
-                    UPDATE users 
-                    SET remainingSlots = ? 
-                    WHERE username = ?
+            if (keyword.slot <= slotsToExpire) {
+                // 키워드를 삭제 키워드로 이동
+                const insertDeletedQuery = `
+                    INSERT INTO deleted_keywords (username, search_term, display_keyword, slot, created_at, deleted_at, note, scheduled_deletion_date)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 `;
-                connection.query(updateRemainingSlotsQuery, [slotsToExpire, username], (err) => {
-                    if (err) {
-                        console.error('Error updating remaining slots:', err);
-                        return res.status(500).json({ error: 'Internal Server Error' });
-                    }
+                await queryAsync(insertDeletedQuery, [
+                    username,
+                    keyword.search_term,
+                    keyword.display_keyword,
+                    keyword.slot,
+                    keyword.created_at,
+                    now,
+                    keyword.note,
+                    scheduledDeletionDate
+                ]);
 
-                    res.json({ success: true });
-                });
-            });
-        });
-    });
+                // 기존 registrations 테이블에서 키워드 삭제
+                const deleteQuery = `DELETE FROM registrations WHERE id = ?`;
+                await queryAsync(deleteQuery, [keyword.id]);
+
+                slotsToExpire -= keyword.slot;
+            } else {
+                // 키워드를 슬롯만 남은 만큼 줄임
+                const updateKeywordSlotQuery = `
+                    UPDATE registrations 
+                    SET slot = slot - ?
+                    WHERE id = ?
+                `;
+                await queryAsync(updateKeywordSlotQuery, [slotsToExpire, keyword.id]);
+
+                slotsToExpire = 0;
+            }
+        }
+
+        // 처리 후 남은 슬롯 수 업데이트
+        const updateRemainingSlotsQuery = `
+            UPDATE users 
+            SET remainingSlots = ? 
+            WHERE username = ?
+        `;
+        await queryAsync(updateRemainingSlotsQuery, [slotsToExpire, username]);
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Error in handleSlotExpiry:', err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
 };
 
-exports.extendSlot = (req, res) => {
-    validateSession(req, res, () => {
+exports.extendSlot = async (req, res) => {
+    try {
         const { id } = req.body;  // 삭제된 키워드의 ID를 받음
 
         // 삭제된 키워드 데이터를 가져옴
@@ -489,49 +461,35 @@ exports.extendSlot = (req, res) => {
             FROM deleted_keywords 
             WHERE id = ? AND username = ?
         `;
+        const results = await queryAsync(getDeletedKeywordQuery, [id, req.session.user]);
 
-        connection.query(getDeletedKeywordQuery, [id, req.session.user], (err, results) => {
-            if (err) {
-                console.error('Error fetching deleted keyword:', err);
-                return res.status(500).json({ error: 'Internal Server Error' });
-            }
+        if (results.length > 0) {
+            const keyword = results[0];
 
-            if (results.length > 0) {
-                const keyword = results[0];
+            // 등록 키워드로 복원
+            const restoreQuery = `
+                INSERT INTO registrations (username, search_term, display_keyword, slot, created_at, note)
+                VALUES (?, ?, ?, ?, ?, ?)
+            `;
+            await queryAsync(restoreQuery, [
+                req.session.user,
+                keyword.search_term,
+                keyword.display_keyword,
+                keyword.slot,
+                keyword.created_at,
+                keyword.note
+            ]);
 
-                // 등록 키워드로 복원
-                const restoreQuery = `
-                    INSERT INTO registrations (username, search_term, display_keyword, slot, created_at, note)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                `;
+            // 삭제된 키워드 테이블에서 제거
+            const deleteFromDeletedQuery = `DELETE FROM deleted_keywords WHERE id = ?`;
+            await queryAsync(deleteFromDeletedQuery, [id]);
 
-                connection.query(restoreQuery, [
-                    req.session.user,
-                    keyword.search_term,
-                    keyword.display_keyword,
-                    keyword.slot,
-                    keyword.created_at,
-                    keyword.note
-                ], (err) => {
-                    if (err) {
-                        console.error('Error restoring keyword:', err);
-                        return res.status(500).json({ error: 'Internal Server Error' });
-                    }
-
-                    // 삭제된 키워드 테이블에서 제거
-                    const deleteFromDeletedQuery = `DELETE FROM deleted_keywords WHERE id = ?`;
-                    connection.query(deleteFromDeletedQuery, [id], (err) => {
-                        if (err) {
-                            console.error('Error deleting from deleted_keywords:', err);
-                            return res.status(500).json({ error: 'Internal Server Error' });
-                        }
-
-                        res.json({ success: true });
-                    });
-                });
-            } else {
-                res.status(404).json({ error: 'Deleted keyword not found.' });
-            }
-        });
-    });
+            res.json({ success: true });
+        } else {
+            res.status(404).json({ error: 'Deleted keyword not found.' });
+        }
+    } catch (err) {
+        console.error('Error in extendSlot:', err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
 };
