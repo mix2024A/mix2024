@@ -503,14 +503,25 @@ input[type="number"]::-webkit-outer-spin-button {
     display: none; /* 기본적으로 숨김 */
 }
 
+/* 페이지 번호 스타일 */
 .page-number {
     cursor: pointer;
-    margin: 0 5px;
-    padding: 5px;
-    font-size: 16px;
+    margin: 10px 5px; /* 상하 간격을 10px, 좌우 간격을 5px으로 설정 */
+    padding: 5px 10px; /* 크기를 조정하여 버튼 크기를 숫자에 딱 맞게 */
+    font-size: 14px;
+    background-color: #3b49df; /* 페이지 버튼 배경색을 #3b49df로 설정 */
+    color: white; /* 글자색을 흰색으로 설정 */
+    border-radius: 3px; /* 약간의 모서리 둥글림을 추가 */
 }
 
 .page-number.active {
     font-weight: bold;
-    color: red; /* 현재 페이지 강조 */
+    background-color: #3b49df; /* 활성화된 페이지도 동일한 색상 */
+    color: white;
+}
+
+/* 페이지네이션 컨테이너 스타일 (테이블과의 간격 설정) */
+#pagination {
+    margin-top: 20px; /* 테이블과의 상하 간격을 20px로 설정 */
+    text-align: center; /* 페이지 번호를 가운데 정렬 */
 }
