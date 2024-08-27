@@ -469,7 +469,7 @@ exports.handleExpiredSlots = () => {
             }
         });
 
-        // 삭제 예정인 슬롯 삭제
+        // 삭제 예정인 슬롯 삭
         const deleteQuery = `
         DELETE FROM charge_history 
         WHERE deletion_date <= CURDATE() AND deletion_date IS NOT NULL;
