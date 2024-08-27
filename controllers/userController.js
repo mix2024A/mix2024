@@ -146,16 +146,37 @@ exports.registerSearchTerm = (req, res) => {
 // 사용자 등록된 검색어 가져오기
 exports.getRegisteredSearchTerms = (req, res) => {
     validateSession(req, res, () => {
-        const query = 'SELECT * FROM registrations WHERE username = ?';
-        connection.query(query, [req.session.user], (err, results) => {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 50;
+        const offset = (page - 1) * limit;
+
+        const query = `
+            SELECT * 
+            FROM registrations 
+            WHERE username = ? 
+            LIMIT ? OFFSET ?
+        `;
+        connection.query(query, [req.session.user, limit, offset], (err, results) => {
             if (err) {
                 console.error('Error fetching registrations:', err);
                 return res.status(500).json({ error: 'Internal Server Error' });
             }
-            res.json(results);
+
+            const countQuery = `SELECT COUNT(*) as totalItems FROM registrations WHERE username = ?`;
+            connection.query(countQuery, [req.session.user], (err, countResults) => {
+                if (err) {
+                    console.error('Error fetching registration count:', err);
+                    return res.status(500).json({ error: 'Internal Server Error' });
+                }
+                res.json({
+                    items: results,
+                    totalItems: countResults[0].totalItems
+                });
+            });
         });
     });
 };
+
 
 // 키워드 삭제 함수 수정
 exports.deleteKeyword = (req, res) => {
