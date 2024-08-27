@@ -524,3 +524,8 @@ input[type="number"]::-webkit-outer-spin-button {
     margin-top: 20px; /* 테이블과의 상하 간격을 20px로 설정 */
     text-align: center; /* 페이지 번호를 가운데 정렬 */
 }
+
+/* 모든 <option> 요소에 적용 */
+option {
+    color: #666; /* 원하는 색상 코드로 변경 */
+}
