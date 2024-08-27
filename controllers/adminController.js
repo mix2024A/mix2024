@@ -95,13 +95,13 @@ exports.adminLogin = (req, res) => {
 // 계정 목록 제공 함수
 exports.getAccounts = (req, res) => {
     const query = `
-    SELECT id, company, username, role, COALESCE(slot, 0) AS slot, COALESCE(remainingSlots, 0) AS remainingSlots, COALESCE(editCount, 0) AS editCount, 'user' AS account_type 
-    FROM users
-    UNION ALL
-    SELECT id, COALESCE(company, '') AS company, username, role, COALESCE(slot, 0) AS slot, COALESCE(remainingSlots, 0) AS remainingSlots, COALESCE(editCount, 0) AS editCount, 'admin' AS account_type 
-    FROM admins
-    ORDER BY id ASC
-`;
+        SELECT id, company, username, role, COALESCE(slot, 0) AS slot, COALESCE(remainingSlots, 0) AS remainingSlots, COALESCE(editCount, 0) AS editCount, 'user' AS account_type 
+        FROM users
+        UNION ALL
+        SELECT id, COALESCE(company, '') AS company, username, role, COALESCE(slot, 0) AS slot, COALESCE(remainingSlots, 0) AS remainingSlots, COALESCE(editCount, 0) AS editCount, 'admin' AS account_type 
+        FROM admins
+        ORDER BY id ASC;
+    `;
 
     connection.query(query, (err, results) => {
         if (err) {
@@ -211,7 +211,7 @@ exports.chargeSlot = (req, res) => {
             let expiryDate = new Date(chargeDate);
             expiryDate.setDate(expiryDate.getDate() + 30);
 
-            const insertHistoryQuery = `
+            const insertHistoryQuery = ` 
                 INSERT INTO charge_history (username, amount, charge_date, expiry_date)
                 VALUES (?, ?, ?, ?)
             `;
@@ -233,7 +233,8 @@ exports.getChargeHistory = (req, res) => {
     const query = `
         SELECT id, username, amount, charge_date, expiry_date 
         FROM charge_history 
-        ORDER BY expiry_date ASC`; 
+        ORDER BY expiry_date ASC;
+    `; 
 
     connection.query(query, (err, results) => {
         if (err) {
@@ -293,7 +294,8 @@ exports.deleteChargeHistory = (req, res) => {
                         SET slot = GREATEST(0, slot - ?), 
                             remainingSlots = GREATEST(0, remainingSlots - ?), 
                             editCount = GREATEST(0, editCount - ?)
-                        WHERE username = ? AND slot >= ?`;
+                        WHERE username = ? AND slot >= ?
+                    `;
 
                     connection.query(updateUserQuery, [amount, amount, amount, username, amount], (err, updateResults) => {
                         if (err) {
@@ -363,23 +365,8 @@ exports.extendChargeHistory = (req, res) => {
                                 return res.status(500).send('Failed to increase user slots.');
                             }
 
-                            // 삭제된 키워드를 복구
-                            const restoreDeletedKeywordsQuery = `
-                                INSERT INTO registrations (username, search_term, display_keyword, slot, created_at, note)
-                                SELECT username, search_term, display_keyword, slot, created_at, note
-                                FROM deleted_keywords
-                                WHERE username = ? AND slot <= ?;
-                            `;
-
-                            connection.query(restoreDeletedKeywordsQuery, [username, amount], (err, results) => {
-                                if (err) {
-                                    console.error('Failed to restore deleted keywords:', err);
-                                    return res.status(500).send('Failed to restore deleted keywords.');
-                                }
-
-                                console.log('Deleted keywords restored:', results.affectedRows);
-                                res.sendStatus(200);
-                            });
+                            console.log(`Slots increased for user ${username}: ${results.affectedRows} rows affected`);
+                            res.sendStatus(200);
                         });
                     } else {
                         res.status(404).send('Charge history not found.');
@@ -411,7 +398,6 @@ exports.extendChargeHistory = (req, res) => {
         }
     });
 };
-
 
 
 // 충전 내역 수정 함수
@@ -446,18 +432,18 @@ exports.editChargeHistory = (req, res) => {
 exports.handleExpiredSlots = () => {
     // 사용자 슬롯을 먼저 차감한 후 비활성화 처리
     const updateAndDeactivateSlotsQuery = `
-        UPDATE users u
-        JOIN (
-            SELECT username, SUM(amount) AS expiredSlotAmount
-            FROM charge_history
-            WHERE expiry_date < CURDATE() AND isSlotActive = 1
-            GROUP BY username
-        ) ch ON u.username = ch.username
-        SET 
-            u.slot = GREATEST(0, u.slot - IFNULL(ch.expiredSlotAmount, 0)),
-            u.remainingSlots = GREATEST(0, u.remainingSlots - IFNULL(ch.expiredSlotAmount, 0)),
-            u.editCount = GREATEST(0, u.editCount - IFNULL(ch.expiredSlotAmount, 0))
-        WHERE ch.expiredSlotAmount > 0;
+    UPDATE users u
+    JOIN (
+        SELECT username, SUM(amount) AS expiredSlotAmount
+        FROM charge_history
+        WHERE expiry_date < CURDATE() AND isSlotActive = 1
+        GROUP BY username
+    ) ch ON u.username = ch.username
+    SET 
+        u.slot = GREATEST(0, u.slot - IFNULL(ch.expiredSlotAmount, 0)),
+        u.remainingSlots = GREATEST(0, u.remainingSlots - IFNULL(ch.expiredSlotAmount, 0)),
+        u.editCount = GREATEST(0, u.editCount - IFNULL(ch.expiredSlotAmount, 0))
+    WHERE ch.expiredSlotAmount > 0;
     `;
 
     connection.query(updateAndDeactivateSlotsQuery, (err, results) => {
@@ -465,48 +451,6 @@ exports.handleExpiredSlots = () => {
             console.error('Failed to update user slots:', err);
         } else {
             console.log('User slots updated:', results.affectedRows);
-
-            // 등록된 키워드에서 만료된 슬롯만큼 차감 후 0슬롯이 된 키워드를 삭제 페이지로 이동
-            const tempTableQuery = `
-                CREATE TEMPORARY TABLE temp_registrations_to_delete AS
-                SELECT r.id
-                FROM registrations r
-                JOIN users u ON r.username = u.username
-                WHERE u.remainingSlots < (
-                    SELECT COUNT(*)
-                    FROM registrations
-                    WHERE username = r.username
-                )
-                ORDER BY r.created_at ASC
-                LIMIT ?;
-            `;
-
-            connection.query(tempTableQuery, [results.affectedRows], (err, tempResults) => {
-                if (err) {
-                    console.error('Failed to create temporary table:', err);
-                } else {
-                    const deleteQuery = `
-                        DELETE r FROM registrations r
-                        JOIN temp_registrations_to_delete t ON r.id = t.id;
-                    `;
-
-                    connection.query(deleteQuery, (err, deleteResults) => {
-                        if (err) {
-                            console.error('Failed to delete keywords:', err);
-                        } else {
-                            console.log('Keywords deleted:', deleteResults.affectedRows);
-                        }
-
-                        // 임시 테이블 삭제
-                        const dropTempTableQuery = `DROP TEMPORARY TABLE IF EXISTS temp_registrations_to_delete;`;
-                        connection.query(dropTempTableQuery, (err) => {
-                            if (err) {
-                                console.error('Failed to drop temporary table:', err);
-                            }
-                        });
-                    });
-                }
-            });
         }
 
         // 만료된 슬롯의 deletion_date와 isSlotActive를 업데이트합니다.
@@ -523,21 +467,21 @@ exports.handleExpiredSlots = () => {
                 console.error('Failed to update expired charge history:', err);
             } else {
                 console.log('Expired charge history marked for deletion and deactivated:', results.affectedRows);
-
-                // 삭제 예정인 슬롯 삭제
-                const deleteQuery = `
-                    DELETE FROM charge_history 
-                    WHERE deletion_date <= CURDATE() AND deletion_date IS NOT NULL;
-                `;
-
-                connection.query(deleteQuery, (err, results) => {
-                    if (err) {
-                        console.error('Failed to delete charge history:', err);
-                    } else {
-                        console.log('Charge history deleted:', results.affectedRows);
-                    }
-                });
             }
+
+            // 삭제 예정인 슬롯 삭제
+            const deleteQuery = `
+            DELETE FROM charge_history 
+            WHERE deletion_date <= CURDATE() AND deletion_date IS NOT NULL;
+            `;
+
+            connection.query(deleteQuery, (err, results) => {
+                if (err) {
+                    console.error('Failed to delete charge history:', err);
+                } else {
+                    console.log('Charge history deleted:', results.affectedRows);
+                }
+            });
         });
     });
 };
