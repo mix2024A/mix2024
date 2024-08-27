@@ -335,6 +335,7 @@ exports.editKeyword = (req, res) => {
 };
 
 
+
 //키워드 카운트 추가 라우트
 exports.getKeywordCount = (req, res) => {
     validateSession(req, res, () => {
