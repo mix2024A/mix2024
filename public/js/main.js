@@ -210,7 +210,7 @@ function updateUserInfo() {
     });
 
  // 수정 모달의 저장 버튼 클릭 시
-document.getElementById('saveEdit').addEventListener('click', function() {
+document.getElementById('saveEdit').addEventListener('click', async function() {
     const idToEdit = document.getElementById('editModal').getAttribute('data-id');
     const slot = document.getElementById('edit-slot').value.trim();
     const note = document.getElementById('edit-note').value.trim();
@@ -227,30 +227,31 @@ document.getElementById('saveEdit').addEventListener('click', function() {
         note: note
     };
 
-    fetch('/user/edit-keyword', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(result => {
+    try {
+        const response = await fetch('/user/edit-keyword', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
         if (result.success) {
-            // 서버로부터 성공 응답을 받은 후에만 UI 업데이트
             document.getElementById('editModal').style.display = 'none';
             document.getElementById('modalOverlay').style.display = 'none';
-            
-            // 여기서 updateUserInfo()를 호출하여 최신 슬롯 정보를 다시 불러옴
-            updateUserInfo(); // 슬롯 및 키워드 수 업데이트
-            
-            // 등록된 검색어를 다시 불러와서 업데이트
-            loadRegisteredSearchTerms(); // 테이블 갱신
+
+            // 여기서 강제로 잔여 슬롯 및 등록된 키워드 수를 업데이트
+            await updateUserInfo(); // 슬롯 및 키워드 수 업데이트
+            await loadRegisteredSearchTerms(); // 테이블 갱신
+
         } else {
             alert('수정에 실패했습니다: ' + result.error);
         }
-    })
-    .catch(error => console.error('Error editing keyword:', error));
+    } catch (error) {
+        console.error('Error editing keyword:', error);
+    }
 });
 
 
