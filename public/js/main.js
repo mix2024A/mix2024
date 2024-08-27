@@ -322,7 +322,7 @@ document.querySelector('.main-account-table').addEventListener('click', function
                     document.getElementById('confirmDelete').setAttribute('data-id', id); // 삭제할 id를 버튼에 저장
                     document.getElementById('confirmDelete').focus(); // 삭제 버튼에 포커스 설정
                 } else {
-                    alert('삭제가능 횟수가 부족하여 키워드를 삭제할 수 없습니다.');
+                    alert('삭제 가능 횟수가 부족하여 키워드를 삭제할 수 없습니다.');
                 }
             })
             .catch(error => console.error('Error checking edit count:', error));
