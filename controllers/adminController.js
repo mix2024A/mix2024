@@ -441,12 +441,8 @@ exports.handleExpiredSlots = () => {
         u.slot = GREATEST(0, u.slot - IFNULL(ch.expiredSlotAmount, 0)),
         u.remainingSlots = GREATEST(0, u.remainingSlots - IFNULL(ch.expiredSlotAmount, 0)),
         u.editCount = GREATEST(0, u.editCount - IFNULL(ch.expiredSlotAmount, 0)),
-        u.isSlotActive = IF(
-            u.slot = 0 AND u.remainingSlots = 0 AND u.editCount = 0, 
-            0, 
-            u.isSlotActive
-        )
-    WHERE ch.expiredSlotAmount > 0 AND u.isSlotActive = 1;
+        u.isSlotActive = 0  -- 비활성화 시 isSlotActive를 0으로 설정
+    WHERE ch.expiredSlotAmount > 0;
     `;
 
     connection.query(updateAndDeactivateSlotsQuery, (err, results) => {
