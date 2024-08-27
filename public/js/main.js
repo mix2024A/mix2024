@@ -211,7 +211,7 @@ function updateUserInfo() {
     });
 
  // 수정 모달의 저장 버튼 클릭 시
-document.getElementById('saveEdit').addEventListener('click', function() {
+ document.getElementById('saveEdit').addEventListener('click', function() {
     const idToEdit = document.getElementById('editModal').getAttribute('data-id');
     const slot = document.getElementById('edit-slot').value.trim();
     const note = document.getElementById('edit-note').value.trim();
@@ -239,21 +239,15 @@ document.getElementById('saveEdit').addEventListener('click', function() {
     .then(response => response.json())
     .then(result => {
         if (result.success) {
-            // 서버로부터 성공 응답을 받은 후에만 UI 업데이트
-            document.getElementById('editModal').style.display = 'none';
-            document.getElementById('modalOverlay').style.display = 'none';
-            
-            // 여기서 updateUserInfo()를 호출하여 최신 슬롯 정보를 다시 불러옴
-            updateUserInfo(); // 슬롯 및 키워드 수 업데이트
-            
-            // 등록된 검색어를 다시 불러와서 업데이트
-            loadRegisteredSearchTerms(); // 테이블 갱신
+            // 서버로부터 성공 응답을 받은 후 페이지 새로고침
+            window.location.reload();
         } else {
             alert('수정에 실패했습니다: ' + result.error);
         }
     })
     .catch(error => console.error('Error editing keyword:', error));
 });
+
 
 
     // 수정 모달의 취소 버튼 클릭 시 모달 창 닫기
