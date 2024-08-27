@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .catch(error => console.error('Error:', error));
 
+
     // 등록된 키워드 개수 불러오기
     fetch('/user/get-keyword-count')
         .then(response => response.json())
@@ -24,91 +25,35 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .catch(error => console.error('Error:', error));
 
-    // 페이지네이션 및 항목 수 선택 설정 추가
-    let currentPage = 1;
-    let itemsPerPage = 50; // 기본값
+// 유저 정보 업데이트 함수
+function updateUserInfo() {
+    fetch('/user/user-info')
+        .then(response => response.json())
+        .then(data => {
+            if (data.username) {
+                document.getElementById('slot').textContent = data.slot;  // 구매슬롯 표시
+                document.getElementById('remainingSlots').textContent = data.remainingSlots;  // 잔여슬롯 표시
+                document.getElementById('editCount').textContent = data.editCount;  // 수정횟수 표시
 
-    document.getElementById('itemsPerPage').addEventListener('change', function() {
-        itemsPerPage = parseInt(this.value);
-        loadRegisteredSearchTerms(); // 선택한 개수에 따라 다시 로드
-    });
+                // 등록된 키워드 개수 불러오기 및 업데이트
+                fetch('/user/get-keyword-count')
+                    .then(response => response.json())
+                    .then(data => {
+                        const keywordCount = data.keywordCount || 0;  // 값이 없을 때 0으로 설정
+                        const keywordCountElement = document.getElementById('keywordCount');
+                        if (keywordCountElement) {
+                            keywordCountElement.textContent = keywordCount;  // 등록 키워드 수 표시
+                        }
+                    })
+                    .catch(error => console.error('Error fetching keyword count:', error));
+            } else {
+                window.location.href = '/'; // 유저 정보가 없으면 로그인 페이지로 리디렉션
+            }
+        })
+        .catch(error => console.error('Error fetching user info:', error));
+}
 
-    function setupPagination(totalItems) {
-        const totalPages = Math.ceil(totalItems / itemsPerPage);
-        const paginationContainer = document.getElementById('pagination');
-        paginationContainer.innerHTML = '';
 
-        for (let i = 1; i <= totalPages; i++) {
-            const pageButton = document.createElement('button');
-            pageButton.textContent = i;
-            pageButton.addEventListener('click', function() {
-                currentPage = i;
-                loadRegisteredSearchTerms();
-            });
-            paginationContainer.appendChild(pageButton);
-        }
-    }
-
-    function loadRegisteredSearchTerms() {
-        fetch(`/user/get-registered-search-terms?page=${currentPage}&limit=${itemsPerPage}`)
-            .then(response => response.json())
-            .then(data => {
-                const tableBody = document.querySelector('tbody');
-                tableBody.innerHTML = ''; 
-
-                data.items.reverse().forEach((item, index) => {
-                    const date = new Date(item.created_at);
-                    const formattedDate = date.toISOString().split('T')[0];
-
-                    const row = document.createElement('tr');
-                    row.setAttribute('data-id', item.id);
-                    row.innerHTML = `
-                        <td>${index + 1}</td>
-                        <td>${item.search_term}</td>
-                        <td>${item.display_keyword}</td>
-                        <td>${item.slot}</td>
-                        <td>${formattedDate}</td>
-                        <td>${item.note}</td>
-                        <td><button class="account-edit-button">수정</button></td>
-                        <td><button class="account-delete-button">삭제</button></td>
-                    `;
-                    tableBody.appendChild(row);
-                });
-
-                setupPagination(data.totalItems);
-            })
-            .catch(error => console.error('Error loading registered search terms:', error));
-    }
-
-    loadRegisteredSearchTerms();
-
-    // 유저 정보 업데이트 함수
-    function updateUserInfo() {
-        fetch('/user/user-info')
-            .then(response => response.json())
-            .then(data => {
-                if (data.username) {
-                    document.getElementById('slot').textContent = data.slot;  // 구매슬롯 표시
-                    document.getElementById('remainingSlots').textContent = data.remainingSlots;  // 잔여슬롯 표시
-                    document.getElementById('editCount').textContent = data.editCount;  // 수정횟수 표시
-
-                    // 등록된 키워드 개수 불러오기 및 업데이트
-                    fetch('/user/get-keyword-count')
-                        .then(response => response.json())
-                        .then(data => {
-                            const keywordCount = data.keywordCount || 0;  // 값이 없을 때 0으로 설정
-                            const keywordCountElement = document.getElementById('keywordCount');
-                            if (keywordCountElement) {
-                                keywordCountElement.textContent = keywordCount;  // 등록 키워드 수 표시
-                            }
-                        })
-                        .catch(error => console.error('Error fetching keyword count:', error));
-                } else {
-                    window.location.href = '/'; // 유저 정보가 없으면 로그인 페이지로 리디렉션
-                }
-            })
-            .catch(error => console.error('Error fetching user info:', error));
-    }
 
     // 등록 버튼 클릭 시 서버로 데이터 전송
     document.getElementById('register-button').addEventListener('click', function() {
@@ -159,14 +104,44 @@ document.addEventListener("DOMContentLoaded", function () {
         
     });
 
-    // 현재 페이지 URL과 일치하는 네비게이션 링크에 active 클래스 추가
-    const currentPath = window.location.pathname;
-    const navbarLinks = document.querySelectorAll('.navbar-link');
-    navbarLinks.forEach(link => {
-        if (link.getAttribute('href') === currentPath) {
-            link.classList.add('active');
-        }
-    });
+   // 현재 페이지 URL과 일치하는 네비게이션 링크에 active 클래스 추가
+   const currentPath = window.location.pathname;
+   const navbarLinks = document.querySelectorAll('.navbar-link');
+   navbarLinks.forEach(link => {
+       if (link.getAttribute('href') === currentPath) {
+           link.classList.add('active');
+       }
+   });
+
+    // 등록된 검색어 로드 및 테이블 업데이트
+    function loadRegisteredSearchTerms() {
+        fetch('/user/get-registered-search-terms')
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.querySelector('tbody');
+                tableBody.innerHTML = ''; 
+                
+                data.reverse().forEach((item, index) => {
+                    const date = new Date(item.created_at);
+                    const formattedDate = date.toISOString().split('T')[0];
+
+                    const row = document.createElement('tr');
+                    row.setAttribute('data-id', item.id); // 행에 id 속성 추가
+                    row.innerHTML = `
+                        <td></td> 
+                        <td>${item.search_term}</td>
+                        <td>${item.display_keyword}</td>
+                        <td>${item.slot}</td>
+                        <td>${formattedDate}</td>  
+                        <td>${item.note}</td>
+                        <td><button class="account-edit-button">수정</button></td>
+                        <td><button class="account-delete-button">삭제</button></td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            })
+            .catch(error => console.error('Error loading registered search terms:', error));
+    }
 
     // 드롭다운 필터링 기능 추가
     document.getElementById('search-button').addEventListener('click', function() {
@@ -206,6 +181,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+
     // 테이블에서 수정 버튼 클릭 시 모달 창 표시
     document.querySelector('.main-account-table').addEventListener('click', function(event) {
         if (event.target.classList.contains('account-edit-button')) {
@@ -235,44 +211,47 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // 수정 모달의 저장 버튼 클릭 시
-    document.getElementById('saveEdit').addEventListener('click', function() {
-        const idToEdit = document.getElementById('editModal').getAttribute('data-id');
-        const slot = document.getElementById('edit-slot').value.trim();
-        const note = document.getElementById('edit-note').value.trim();
+ // 수정 모달의 저장 버튼 클릭 시
+ document.getElementById('saveEdit').addEventListener('click', function() {
+    const idToEdit = document.getElementById('editModal').getAttribute('data-id');
+    const slot = document.getElementById('edit-slot').value.trim();
+    const note = document.getElementById('edit-note').value.trim();
 
-        // 슬롯이 0 이하이면 수정 불가
-        if (slot <= 0) {
-            alert('슬롯 수는 0보다 커야 합니다.');
-            return;
+    // 슬롯이 0 이하이면 수정 불가
+    if (slot <= 0) {
+        alert('슬롯 수는 0보다 커야 합니다.');
+        return;
+    }
+
+    const data = {
+        id: idToEdit,
+        slot: slot,
+        note: note
+    };
+
+    fetch('/user/edit-keyword', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-store'  // 캐시 방지
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            // 스크롤 위치 저장 후 페이지 새로고침
+            localStorage.setItem('scrollPosition', window.scrollY);
+            window.location.reload();
+        } else {
+            alert('수정에 실패했습니다: ' + result.error);
         }
+    })
+    .catch(error => console.error('Error editing keyword:', error));
+});
 
-        const data = {
-            id: idToEdit,
-            slot: slot,
-            note: note
-        };
 
-        fetch('/user/edit-keyword', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Cache-Control': 'no-store'  // 캐시 방지
-            },
-            body: JSON.stringify(data)
-        })
-        .then(response => response.json())
-        .then(result => {
-            if (result.success) {
-                // 스크롤 위치 저장 후 페이지 새로고침
-                localStorage.setItem('scrollPosition', window.scrollY);
-                window.location.reload();
-            } else {
-                alert('수정에 실패했습니다: ' + result.error);
-            }
-        })
-        .catch(error => console.error('Error editing keyword:', error));
-    });
+
 
     // 수정 모달의 취소 버튼 클릭 시 모달 창 닫기
     document.getElementById('cancelEdit').addEventListener('click', function() {
@@ -323,8 +302,11 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         })
         .catch(error => console.error('Error deleting keyword:', error));
+        
     });
 
+
+    
     // 페이지 로드 시 테이블에 등록된 검색어 표시
     loadRegisteredSearchTerms();
 });
