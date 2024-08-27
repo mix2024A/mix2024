@@ -264,7 +264,8 @@ function setupPagination(totalItems) {
     });
 
  // 수정 모달의 저장 버튼 클릭 시
- document.getElementById('saveEdit').addEventListener('click', function() {
+// 수정 모달의 저장 버튼 클릭 시
+document.getElementById('saveEdit').addEventListener('click', function() {
     const idToEdit = document.getElementById('editModal').getAttribute('data-id');
     const slot = document.getElementById('edit-slot').value.trim();
     const note = document.getElementById('edit-note').value.trim();
@@ -292,15 +293,21 @@ function setupPagination(totalItems) {
     .then(response => response.json())
     .then(result => {
         if (result.success) {
-            // 스크롤 위치 저장 후 페이지 새로고침
-            localStorage.setItem('scrollPosition', window.scrollY);
-            window.location.reload();
+            // 성공적으로 수정되었을 때, 해당 행만 업데이트
+            const row = document.querySelector(`tr[data-id="${idToEdit}"]`);
+            row.querySelector('td:nth-child(4)').textContent = slot;
+            row.querySelector('td:nth-child(6)').textContent = note;
+
+            // 모달 닫기
+            document.getElementById('editModal').style.display = 'none';
+            document.getElementById('modalOverlay').style.display = 'none';
         } else {
             alert('수정에 실패했습니다: ' + result.error);
         }
     })
     .catch(error => console.error('Error editing keyword:', error));
 });
+
 
 
 
