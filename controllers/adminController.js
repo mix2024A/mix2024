@@ -428,46 +428,35 @@ exports.editChargeHistory = (req, res) => {
 };
 
 exports.handleExpiredSlots = () => {
-    // 1. 만료된 슬롯의 사용자 슬롯을 먼저 차감합니다. 단, isSlotActive가 1인 경우에만 차감.
-    const updateUserSlotsQuery = `
+    // 만료된 슬롯의 사용자 슬롯을 업데이트하면서 동시에 비활성화 처리
+    const updateAndDeactivateSlotsQuery = `
     UPDATE users u
     JOIN (
         SELECT username, SUM(amount) AS expiredSlotAmount
         FROM charge_history
-        WHERE expiry_date < CURDATE() AND deletion_date IS NOT NULL
+        WHERE expiry_date < CURDATE() AND deletion_date IS NOT NULL AND isSlotActive = 1
         GROUP BY username
     ) ch ON u.username = ch.username
     SET 
         u.slot = GREATEST(0, u.slot - IFNULL(ch.expiredSlotAmount, 0)),
         u.remainingSlots = GREATEST(0, u.remainingSlots - IFNULL(ch.expiredSlotAmount, 0)),
-        u.editCount = GREATEST(0, u.editCount - IFNULL(ch.expiredSlotAmount, 0))
+        u.editCount = GREATEST(0, u.editCount - IFNULL(ch.expiredSlotAmount, 0)),
+        u.isSlotActive = IF(
+            u.slot = 0 AND u.remainingSlots = 0 AND u.editCount = 0, 
+            0, 
+            u.isSlotActive
+        )
     WHERE ch.expiredSlotAmount > 0 AND u.isSlotActive = 1;
     `;
 
-    connection.query(updateUserSlotsQuery, (err, results) => {
+    connection.query(updateAndDeactivateSlotsQuery, (err, results) => {
         if (err) {
-            console.error('Failed to update user slots:', err);
-            return;
+            console.error('Failed to update and deactivate user slots:', err);
         } else {
-            console.log('User slots updated:', results.affectedRows);
+            console.log('User slots updated and deactivated:', results.affectedRows);
         }
 
-        // 2. 차감이 완료된 후에 슬롯을 비활성화합니다.
-        const disableSlotsQuery = `
-        UPDATE users 
-        SET isSlotActive = 0 
-        WHERE slot = 0 AND remainingSlots = 0 AND editCount = 0;
-        `;
-
-        connection.query(disableSlotsQuery, (err, results) => {
-            if (err) {
-                console.error('Failed to deactivate user slots:', err);
-            } else {
-                console.log('User slots deactivated:', results.affectedRows);
-            }
-        });
-
-        // 3. 만료된 슬롯의 deletion_date를 업데이트합니다.
+        // 만료된 슬롯의 deletion_date를 업데이트합니다.
         const updateExpiredQuery = `
             UPDATE charge_history 
             SET 
@@ -484,7 +473,7 @@ exports.handleExpiredSlots = () => {
             }
         });
 
-        // 4. 삭제 예정인 슬롯 삭제
+        // 삭제 예정인 슬롯 삭제
         const deleteQuery = `
         DELETE FROM charge_history 
         WHERE deletion_date <= CURDATE() AND deletion_date IS NOT NULL;
