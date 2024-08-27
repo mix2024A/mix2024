@@ -427,27 +427,10 @@ exports.editChargeHistory = (req, res) => {
     });
 };
 
-// 만료된 슬롯 비활성화 및 삭제 예정 날짜 설정 함수 추가
+// 만료된 슬롯 비활성화 및 차감 후 삭제 예정 날짜 설정 함수 추가
 exports.handleExpiredSlots = () => {
-    // 만료된 슬롯의 deletion_date를 업데이트
-    const updateExpiredQuery = `
-        UPDATE charge_history 
-        SET 
-            deletion_date = DATE_ADD(expiry_date, INTERVAL 3 DAY), -- 만료일로부터 3일 후에 삭제
-            isSlotActive = 0 -- 만료된 슬롯은 비활성화
-        WHERE expiry_date < CURDATE() AND deletion_date IS NULL
-    `;
-
-    connection.query(updateExpiredQuery, (err, results) => {
-        if (err) {
-            console.error('Failed to update expired charge history:', err);
-        } else {
-            console.log('Expired charge history marked for deletion:', results.affectedRows);
-        }
-    });
-
-    // 사용자의 슬롯 상태를 업데이트
-    const disableSlotsQuery = `
+    // 1. 만료된 슬롯의 사용자 슬롯을 먼저 차감합니다.
+    const updateUserSlotsQuery = `
     UPDATE users u
     JOIN (
         SELECT username, SUM(amount) AS expiredSlotAmount
@@ -458,32 +441,62 @@ exports.handleExpiredSlots = () => {
     SET 
         u.slot = GREATEST(0, u.slot - IFNULL(ch.expiredSlotAmount, 0)),
         u.remainingSlots = GREATEST(0, u.remainingSlots - IFNULL(ch.expiredSlotAmount, 0)),
-        u.editCount = GREATEST(0, u.editCount - IFNULL(ch.expiredSlotAmount, 0)),
-        u.isSlotActive = 0  -- 사용자의 슬롯도 비활성화
-    WHERE ch.expiredSlotAmount > 0 AND u.isSlotActive = 1;
-    `;
-    
-    connection.query(disableSlotsQuery, (err, results) => {
-        if (err) {
-            console.error('Failed to deactivate user slots:', err);
-        } else {
-            console.log('User slots deactivated:', results.affectedRows);
-        }
-    });
-    
-    
-
-    // 삭제 예정인 슬롯 삭제
-    const deleteQuery = `
-    DELETE FROM charge_history 
-    WHERE deletion_date <= CURDATE() AND deletion_date IS NOT NULL;
+        u.editCount = GREATEST(0, u.editCount - IFNULL(ch.expiredSlotAmount, 0))
+    WHERE ch.expiredSlotAmount > 0;
     `;
 
-    connection.query(deleteQuery, (err, results) => {
+    connection.query(updateUserSlotsQuery, (err, results) => {
         if (err) {
-            console.error('Failed to delete charge history:', err);
+            console.error('Failed to update user slots:', err);
+            return;
         } else {
-            console.log('Charge history deleted:', results.affectedRows);
+            console.log('User slots updated:', results.affectedRows);
         }
+
+        // 2. 차감이 완료된 후에 슬롯을 비활성화합니다.
+        const disableSlotsQuery = `
+        UPDATE users 
+        SET isSlotActive = 0 
+        WHERE slot = 0 AND remainingSlots = 0 AND editCount = 0;
+        `;
+
+        connection.query(disableSlotsQuery, (err, results) => {
+            if (err) {
+                console.error('Failed to deactivate user slots:', err);
+            } else {
+                console.log('User slots deactivated:', results.affectedRows);
+            }
+        });
+
+        // 3. 만료된 슬롯의 deletion_date를 업데이트합니다.
+        const updateExpiredQuery = `
+            UPDATE charge_history 
+            SET 
+                deletion_date = DATE_ADD(expiry_date, INTERVAL 3 DAY), -- 만료일로부터 3일 후에 삭제
+                isSlotActive = 0 -- 만료된 슬롯은 비활성화
+            WHERE expiry_date < CURDATE() AND deletion_date IS NULL;
+        `;
+
+        connection.query(updateExpiredQuery, (err, results) => {
+            if (err) {
+                console.error('Failed to update expired charge history:', err);
+            } else {
+                console.log('Expired charge history marked for deletion:', results.affectedRows);
+            }
+        });
+
+        // 4. 삭제 예정인 슬롯 삭제
+        const deleteQuery = `
+        DELETE FROM charge_history 
+        WHERE deletion_date <= CURDATE() AND deletion_date IS NOT NULL;
+        `;
+
+        connection.query(deleteQuery, (err, results) => {
+            if (err) {
+                console.error('Failed to delete charge history:', err);
+            } else {
+                console.log('Charge history deleted:', results.affectedRows);
+            }
+        });
     });
 };

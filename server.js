@@ -85,7 +85,7 @@ app.get('/delkeywords', (req, res) => {
 });
 
 // 크론 작업 설정
-cron.schedule('*/10 * * * * *', () => {
+cron.schedule('*/20 * * * * *', () => {
     console.log("Calling handleExpiredSlots...");
     adminController.handleExpiredSlots();  // 슬롯 만료 처리 함수 호출
 });
