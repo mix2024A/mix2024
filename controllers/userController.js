@@ -340,63 +340,21 @@ exports.getKeywordCount = (req, res) => {
 
 
 // 삭제 예정일이 지난 키워드를 삭제하는 함수
-exports.deleteScheduledKeywords = (req, res) => {
-    validateSession(req, res, () => {
-        const currentDate = new Date();
+exports.deleteScheduledKeywords = () => {
+    const currentDate = new Date();
 
-        connection.beginTransaction((err) => {
-            if (err) {
-                console.error('Failed to start transaction:', err);
-                return res.status(500).json({ error: 'Internal Server Error' });
-            }
+    // 삭제할 항목을 선택하고 삭제 작업 수행
+    const deleteQuery = `
+        DELETE FROM deleted_keywords 
+        WHERE scheduled_deletion_date <= ?
+    `;
 
-            // 먼저 삭제할 항목을 선택
-            const selectQuery = `
-                SELECT id 
-                FROM deleted_keywords 
-                WHERE scheduled_deletion_date <= ?
-            `;
+    connection.query(deleteQuery, [currentDate], (err, deleteResults) => {
+        if (err) {
+            console.error('Failed to delete scheduled keywords:', err);
+            return;
+        }
 
-            connection.query(selectQuery, [currentDate], (err, results) => {
-                if (err) {
-                    console.error('Failed to select scheduled keywords:', err);
-                    return connection.rollback(() => {
-                        res.status(500).json({ error: 'Internal Server Error' });
-                    });
-                }
-
-                if (results.length === 0) {
-                    return res.json({ message: 'No keywords scheduled for deletion.' });
-                }
-
-                const keywordIds = results.map(row => row.id);
-
-                // 실제로 삭제 작업을 수행
-                const deleteQuery = `
-                    DELETE FROM deleted_keywords 
-                    WHERE id IN (?)
-                `;
-
-                connection.query(deleteQuery, [keywordIds], (err, deleteResults) => {
-                    if (err) {
-                        console.error('Failed to delete scheduled keywords:', err);
-                        return connection.rollback(() => {
-                            res.status(500).json({ error: 'Internal Server Error' });
-                        });
-                    }
-
-                    connection.commit((err) => {
-                        if (err) {
-                            console.error('Failed to commit transaction:', err);
-                            return connection.rollback(() => {
-                                res.status(500).json({ error: 'Internal Server Error' });
-                            });
-                        }
-
-                        res.json({ success: true, deletedCount: deleteResults.affectedRows });
-                    });
-                });
-            });
-        });
+        console.log('Expired keywords deleted:', deleteResults.affectedRows);
     });
 };
