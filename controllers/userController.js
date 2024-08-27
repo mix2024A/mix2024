@@ -274,7 +274,7 @@ exports.editKeyword = (req, res) => {
 
             if (results.length > 0) {
                 const currentSlot = results[0].slot;
-                const slotDifference = slot - currentSlot; // 새로운 슬롯과 기존 슬롯의 차이 계산
+                const slotDifference = slot - currentSlot; // 슬롯 차이 계산
 
                 // 사용자의 남은 슬롯을 가져옴
                 const getRemainingSlotsQuery = `
@@ -309,7 +309,7 @@ exports.editKeyword = (req, res) => {
                             return res.status(500).json({ error: 'Internal Server Error' });
                         }
 
-                        // 슬롯 차이가 있는 경우 잔여 슬롯 업데이트
+                        // 슬롯 차이가 있는 경우에만 잔여 슬롯 업데이트
                         if (slotDifference !== 0) {
                             const adjustSlotsQuery = `
                                 UPDATE users 
