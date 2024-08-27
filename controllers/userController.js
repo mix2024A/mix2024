@@ -144,7 +144,7 @@ exports.registerSearchTerm = (req, res) => {
 };
 
 // 사용자 등록된 검색어 가져오기
-eexports.getRegisteredSearchTerms = (req, res) => {
+exports.getRegisteredSearchTerms = (req, res) => {
     validateSession(req, res, () => {
         const { page = 1, limit = 50 } = req.query;
         const offset = (page - 1) * limit;
