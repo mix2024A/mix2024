@@ -121,19 +121,24 @@ document.addEventListener("DOMContentLoaded", function () {
        }
    });
 
-    // 등록된 검색어 로드 및 테이블 업데이트
+    
     // 등록된 검색어 로드 및 테이블 업데이트
     function loadRegisteredSearchTerms() {
         fetch(`/user/get-registered-search-terms?page=${currentPage}&limit=${itemsPerPage}`)
             .then(response => response.json())
             .then(data => {
+                if (!data.items) {
+                    console.error('Error: No items in response');
+                    return;
+                }
+    
                 const tableBody = document.querySelector('tbody');
                 tableBody.innerHTML = ''; 
-
+    
                 data.items.forEach((item, index) => {
                     const date = new Date(item.created_at);
                     const formattedDate = date.toISOString().split('T')[0];
-
+    
                     const row = document.createElement('tr');
                     row.setAttribute('data-id', item.id);
                     row.innerHTML = `
@@ -148,12 +153,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     `;
                     tableBody.appendChild(row);
                 });
-
+    
                 setupPagination(data.totalItems);
             })
             .catch(error => console.error('Error loading registered search terms:', error));
     }
-
+    
     // 페이지네이션 설정 함수
     function setupPagination(totalItems) {
         const totalPages = Math.ceil(totalItems / itemsPerPage);
