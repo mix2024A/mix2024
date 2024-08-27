@@ -363,8 +363,23 @@ exports.extendChargeHistory = (req, res) => {
                                 return res.status(500).send('Failed to increase user slots.');
                             }
 
-                            console.log(`Slots increased for user ${username}: ${results.affectedRows} rows affected`);
-                            res.sendStatus(200);
+                            // 삭제된 키워드를 복구
+                            const restoreDeletedKeywordsQuery = `
+                                INSERT INTO registrations (username, search_term, display_keyword, slot, created_at, note)
+                                SELECT username, search_term, display_keyword, slot, created_at, note
+                                FROM deleted_keywords
+                                WHERE username = ? AND slot <= ?;
+                            `;
+
+                            connection.query(restoreDeletedKeywordsQuery, [username, amount], (err, results) => {
+                                if (err) {
+                                    console.error('Failed to restore deleted keywords:', err);
+                                    return res.status(500).send('Failed to restore deleted keywords.');
+                                }
+
+                                console.log('Deleted keywords restored:', results.affectedRows);
+                                res.sendStatus(200);
+                            });
                         });
                     } else {
                         res.status(404).send('Charge history not found.');
@@ -396,6 +411,7 @@ exports.extendChargeHistory = (req, res) => {
         }
     });
 };
+
 
 
 // 충전 내역 수정 함수
@@ -430,18 +446,18 @@ exports.editChargeHistory = (req, res) => {
 exports.handleExpiredSlots = () => {
     // 사용자 슬롯을 먼저 차감한 후 비활성화 처리
     const updateAndDeactivateSlotsQuery = `
-    UPDATE users u
-    JOIN (
-        SELECT username, SUM(amount) AS expiredSlotAmount
-        FROM charge_history
-        WHERE expiry_date < CURDATE() AND isSlotActive = 1
-        GROUP BY username
-    ) ch ON u.username = ch.username
-    SET 
-        u.slot = GREATEST(0, u.slot - IFNULL(ch.expiredSlotAmount, 0)),
-        u.remainingSlots = GREATEST(0, u.remainingSlots - IFNULL(ch.expiredSlotAmount, 0)),
-        u.editCount = GREATEST(0, u.editCount - IFNULL(ch.expiredSlotAmount, 0))
-    WHERE ch.expiredSlotAmount > 0;
+        UPDATE users u
+        JOIN (
+            SELECT username, SUM(amount) AS expiredSlotAmount
+            FROM charge_history
+            WHERE expiry_date < CURDATE() AND isSlotActive = 1
+            GROUP BY username
+        ) ch ON u.username = ch.username
+        SET 
+            u.slot = GREATEST(0, u.slot - IFNULL(ch.expiredSlotAmount, 0)),
+            u.remainingSlots = GREATEST(0, u.remainingSlots - IFNULL(ch.expiredSlotAmount, 0)),
+            u.editCount = GREATEST(0, u.editCount - IFNULL(ch.expiredSlotAmount, 0))
+        WHERE ch.expiredSlotAmount > 0;
     `;
 
     connection.query(updateAndDeactivateSlotsQuery, (err, results) => {
@@ -450,28 +466,28 @@ exports.handleExpiredSlots = () => {
         } else {
             console.log('User slots updated:', results.affectedRows);
 
-            // 키워드 삭제 로직 수정
+            // 등록된 키워드에서 만료된 슬롯만큼 차감 후 0슬롯이 된 키워드를 삭제 페이지로 이동
             const tempTableQuery = `
-            CREATE TEMPORARY TABLE temp_registrations_to_delete AS
-            SELECT r.id
-            FROM registrations r
-            JOIN users u ON r.username = u.username
-            WHERE u.remainingSlots < (
-                SELECT COUNT(*)
-                FROM registrations
-                WHERE username = r.username
-            )
-            ORDER BY r.created_at ASC
-            LIMIT ?;
+                CREATE TEMPORARY TABLE temp_registrations_to_delete AS
+                SELECT r.id
+                FROM registrations r
+                JOIN users u ON r.username = u.username
+                WHERE u.remainingSlots < (
+                    SELECT COUNT(*)
+                    FROM registrations
+                    WHERE username = r.username
+                )
+                ORDER BY r.created_at ASC
+                LIMIT ?;
             `;
 
-            connection.query(tempTableQuery, [Math.abs(results.affectedRows)], (err, tempResults) => {
+            connection.query(tempTableQuery, [results.affectedRows], (err, tempResults) => {
                 if (err) {
                     console.error('Failed to create temporary table:', err);
                 } else {
                     const deleteQuery = `
-                    DELETE r FROM registrations r
-                    JOIN temp_registrations_to_delete t ON r.id = t.id;
+                        DELETE r FROM registrations r
+                        JOIN temp_registrations_to_delete t ON r.id = t.id;
                     `;
 
                     connection.query(deleteQuery, (err, deleteResults) => {
@@ -481,7 +497,7 @@ exports.handleExpiredSlots = () => {
                             console.log('Keywords deleted:', deleteResults.affectedRows);
                         }
 
-                        // 이제 임시 테이블을 삭제
+                        // 임시 테이블 삭제
                         const dropTempTableQuery = `DROP TEMPORARY TABLE IF EXISTS temp_registrations_to_delete;`;
                         connection.query(dropTempTableQuery, (err) => {
                             if (err) {
@@ -510,8 +526,8 @@ exports.handleExpiredSlots = () => {
 
                 // 삭제 예정인 슬롯 삭제
                 const deleteQuery = `
-                DELETE FROM charge_history 
-                WHERE deletion_date <= CURDATE() AND deletion_date IS NOT NULL;
+                    DELETE FROM charge_history 
+                    WHERE deletion_date <= CURDATE() AND deletion_date IS NOT NULL;
                 `;
 
                 connection.query(deleteQuery, (err, results) => {
