@@ -529,3 +529,7 @@ input[type="number"]::-webkit-outer-spin-button {
 option {
     color: #666; /* 원하는 색상 코드로 변경 */
 }
+
+select {
+    color: #666; /* 원하는 색상 코드로 변경 */
+}
