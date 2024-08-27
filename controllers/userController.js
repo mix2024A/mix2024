@@ -288,8 +288,9 @@ exports.editKeyword = (req, res) => {
 
                     const remainingSlots = userResults[0].remainingSlots;
 
+                    // 슬롯 차이가 양수이고 남은 슬롯이 부족한 경우 오류 반환
                     if (slotDifference > 0 && remainingSlots < slotDifference) {
-                        return res.status(400).json({ error: '슬롯이 부족합니다.' });
+                        return res.status(400).json({ error: '잔여 슬롯이 부족하여 수정할 수 없습니다.' });
                     }
 
                     // 슬롯을 업데이트하는 쿼리
@@ -332,6 +333,7 @@ exports.editKeyword = (req, res) => {
         });
     });
 };
+
 
 //키워드 카운트 추가 라우트
 exports.getKeywordCount = (req, res) => {
