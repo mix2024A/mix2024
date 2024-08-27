@@ -317,25 +317,21 @@ exports.editKeyword = (req, res) => {
             return res.status(400).json({ error: '슬롯은 필수 입력 항목입니다.' });
         }
 
-        // 트랜잭션 시작
         connection.beginTransaction(err => {
             if (err) {
                 console.error('Transaction start failed:', err);
                 return res.status(500).json({ error: 'Internal Server Error' });
             }
 
-            // 기존 슬롯 수와 남은 슬롯 수를 동시에 가져오면서 잠금
-            const getSlotAndRemainingQuery = `
-                SELECT r.slot AS currentSlot, u.remainingSlots 
-                FROM registrations r 
-                JOIN users u ON r.username = u.username 
-                WHERE r.id = ? AND r.username = ? 
-                FOR UPDATE
+            const getSlotQuery = `
+                SELECT slot 
+                FROM registrations 
+                WHERE id = ? AND username = ?
             `;
 
-            connection.query(getSlotAndRemainingQuery, [id, req.session.user], (err, results) => {
+            connection.query(getSlotQuery, [id, req.session.user], (err, results) => {
                 if (err) {
-                    console.error('Error fetching slot and remaining slots:', err);
+                    console.error('Error fetching slot data:', err);
                     return connection.rollback(() => {
                         res.status(500).json({ error: 'Internal Server Error' });
                     });
@@ -347,62 +343,83 @@ exports.editKeyword = (req, res) => {
                     });
                 }
 
-                const currentSlot = results[0].currentSlot;
-                const remainingSlots = results[0].remainingSlots;
-                const slotDifference = slot - currentSlot; // 슬롯 차이 계산
+                const currentSlot = results[0].slot;
+                const slotDifference = slot - currentSlot;
 
-                console.log(`Current Slot: ${currentSlot}, New Slot: ${slot}, Slot Difference: ${slotDifference}, Remaining Slots: ${remainingSlots}`);
-
-                // 슬롯 차이가 양수이고 남은 슬롯이 부족한 경우 오류 반환
-                if (slotDifference > 0 && remainingSlots < slotDifference) {
-                    console.error('Not enough remaining slots to increase.');
-                    return connection.rollback(() => {
-                        res.status(400).json({ error: '잔여 슬롯이 부족하여 수정할 수 없습니다.' });
-                    });
-                }
-
-                // registrations 테이블 업데이트
-                const updateRegistrationQuery = `
-                    UPDATE registrations
-                    SET slot = ?, note = ?
-                    WHERE id = ? AND username = ?
+                const getRemainingSlotsQuery = `
+                    SELECT remainingSlots 
+                    FROM users 
+                    WHERE username = ?
                 `;
 
-                connection.query(updateRegistrationQuery, [slot, note, id, req.session.user], (err, updateResults) => {
+                connection.query(getRemainingSlotsQuery, [req.session.user], (err, userResults) => {
                     if (err) {
-                        console.error('Error updating registration:', err);
+                        console.error('Error fetching remaining slots:', err);
                         return connection.rollback(() => {
                             res.status(500).json({ error: 'Internal Server Error' });
                         });
                     }
 
-                    // users 테이블의 remainingSlots 업데이트
-                    const updateUserSlotsQuery = `
-                        UPDATE users
-                        SET remainingSlots = remainingSlots - ?
-                        WHERE username = ?
+                    const remainingSlots = userResults[0].remainingSlots;
+
+                    if (slotDifference > 0 && remainingSlots < slotDifference) {
+                        return connection.rollback(() => {
+                            res.status(400).json({ error: '잔여 슬롯이 부족하여 수정할 수 없습니다.' });
+                        });
+                    }
+
+                    const updateQuery = `
+                        UPDATE registrations
+                        SET slot = ?, note = ?
+                        WHERE id = ? AND username = ?
                     `;
 
-                    connection.query(updateUserSlotsQuery, [slotDifference, req.session.user], (err, userUpdateResults) => {
+                    connection.query(updateQuery, [slot, note, id, req.session.user], (err) => {
                         if (err) {
-                            console.error('Error updating user slots:', err);
+                            console.error('Error updating keyword:', err);
                             return connection.rollback(() => {
                                 res.status(500).json({ error: 'Internal Server Error' });
                             });
                         }
 
-                        // 트랜잭션 커밋
-                        connection.commit(err => {
-                            if (err) {
-                                console.error('Transaction commit failed:', err);
-                                return connection.rollback(() => {
-                                    res.status(500).json({ error: 'Internal Server Error' });
-                                });
-                            }
+                        if (slotDifference !== 0) {
+                            const adjustSlotsQuery = `
+                                UPDATE users 
+                                SET remainingSlots = remainingSlots - ?
+                                WHERE username = ?
+                            `;
 
-                            console.log('Slot update transaction committed successfully.');
-                            res.json({ success: true });
-                        });
+                            connection.query(adjustSlotsQuery, [slotDifference, req.session.user], (err) => {
+                                if (err) {
+                                    console.error('Error adjusting slots:', err);
+                                    return connection.rollback(() => {
+                                        res.status(500).json({ error: 'Internal Server Error' });
+                                    });
+                                }
+
+                                connection.commit(err => {
+                                    if (err) {
+                                        console.error('Transaction commit failed:', err);
+                                        return connection.rollback(() => {
+                                            res.status(500).json({ error: 'Internal Server Error' });
+                                        });
+                                    }
+
+                                    res.json({ success: true });
+                                });
+                            });
+                        } else {
+                            connection.commit(err => {
+                                if (err) {
+                                    console.error('Transaction commit failed:', err);
+                                    return connection.rollback(() => {
+                                        res.status(500).json({ error: 'Internal Server Error' });
+                                    });
+                                }
+
+                                res.json({ success: true });
+                            });
+                        }
                     });
                 });
             });
