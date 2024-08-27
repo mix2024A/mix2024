@@ -314,7 +314,10 @@ exports.editKeyword = (req, res) => {
                                 WHERE username = ?
                             `;
 
-                            connection.query(adjustSlotsQuery, [slotDifference, req.session.user], (err, adjustResults) => {
+                            // 슬롯을 증가시키는 경우 남은 슬롯을 줄이고, 슬롯을 줄이는 경우 남은 슬롯을 증가시킴
+                            const adjustment = slotDifference > 0 ? slotDifference : -slotDifference;
+
+                            connection.query(adjustSlotsQuery, [adjustment, req.session.user], (err, adjustResults) => {
                                 if (err) {
                                     console.error('Error adjusting slots:', err);
                                     return res.status(500).json({ error: '내부 서버 오류가 발생했습니다.' });
@@ -333,6 +336,7 @@ exports.editKeyword = (req, res) => {
         });
     });
 };
+
 
 
 
