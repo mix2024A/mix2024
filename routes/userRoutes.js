@@ -21,6 +21,7 @@ router.post('/delete-keyword', userController.deleteKeyword);
 router.post('/edit-keyword', userController.editKeyword);
 //키워드 등록 카운트 라우트
 router.get('/get-keyword-count', userController.getKeywordCount);
-
+//키워드 페이지 라우트
+router.get('/get-registered-search-terms', userController.getRegisteredSearchTerms);
 
 module.exports = router;
