@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const keywordCount = data.keywordCount || 0;  // 값이 없을 때 0으로 설정
             document.getElementById('keywordCount').textContent = keywordCount;  // 등록 키워드 수 표시
         })
-        .catch(error => console.error('Error:', error));
+        .catch(error => console.error('Error fetching keyword count:', error));
 
     // 유저 정보 업데이트 함수
     function updateUserInfo() {
