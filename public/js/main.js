@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (data.username) {
                     document.getElementById('slot').textContent = data.slot;  // 구매슬롯 표시
                     document.getElementById('remainingSlots').textContent = data.remainingSlots;  // 잔여슬롯 표시
-                    document.getElementId('editCount').textContent = data.editCount;  // 수정횟수 표시
+                    document.getElementById('editCount').textContent = data.editCount;  // 수정횟수 표시
 
                     // 등록된 키워드 개수 불러오기 및 업데이트
                     fetch('/user/get-keyword-count')
