@@ -308,7 +308,7 @@ exports.deleteKeyword = (req, res) => {
 
 
 
-//슬롯 갯수 수정
+// 슬롯 갯수 수정
 exports.editKeyword = (req, res) => {
     validateSession(req, res, () => {
         const { id, slot, note } = req.body;
@@ -324,116 +324,92 @@ exports.editKeyword = (req, res) => {
                 return res.status(500).json({ error: 'Internal Server Error' });
             }
 
-            // 기존 슬롯 수를 가져옴
-            const getSlotQuery = `
-                SELECT slot 
-                FROM registrations 
-                WHERE id = ? AND username = ?
+            // 기존 슬롯 수와 남은 슬롯 수를 동시에 가져오면서 잠금
+            const getSlotAndRemainingQuery = `
+                SELECT r.slot AS currentSlot, u.remainingSlots 
+                FROM registrations r 
+                JOIN users u ON r.username = u.username 
+                WHERE r.id = ? AND r.username = ? 
+                FOR UPDATE
             `;
 
-            connection.query(getSlotQuery, [id, req.session.user], (err, results) => {
+            connection.query(getSlotAndRemainingQuery, [id, req.session.user], (err, results) => {
                 if (err) {
-                    console.error('Error fetching slot data:', err);
+                    console.error('Error fetching slot and remaining slots:', err);
                     return connection.rollback(() => {
                         res.status(500).json({ error: 'Internal Server Error' });
                     });
                 }
 
-                if (results.length > 0) {
-                    const currentSlot = results[0].slot;
-                    const slotDifference = slot - currentSlot; // 슬롯 차이 계산
+                if (results.length === 0) {
+                    return connection.rollback(() => {
+                        res.status(404).json({ error: '키워드를 찾을 수 없습니다.' });
+                    });
+                }
 
-                    // 사용자의 남은 슬롯을 가져옴
-                    const getRemainingSlotsQuery = `
-                        SELECT remainingSlots 
-                        FROM users 
+                const currentSlot = results[0].currentSlot;
+                const remainingSlots = results[0].remainingSlots;
+                const slotDifference = slot - currentSlot; // 슬롯 차이 계산
+
+                console.log(`Current Slot: ${currentSlot}, New Slot: ${slot}, Slot Difference: ${slotDifference}, Remaining Slots: ${remainingSlots}`);
+
+                // 슬롯 차이가 양수이고 남은 슬롯이 부족한 경우 오류 반환
+                if (slotDifference > 0 && remainingSlots < slotDifference) {
+                    console.error('Not enough remaining slots to increase.');
+                    return connection.rollback(() => {
+                        res.status(400).json({ error: '잔여 슬롯이 부족하여 수정할 수 없습니다.' });
+                    });
+                }
+
+                // registrations 테이블 업데이트
+                const updateRegistrationQuery = `
+                    UPDATE registrations
+                    SET slot = ?, note = ?
+                    WHERE id = ? AND username = ?
+                `;
+
+                connection.query(updateRegistrationQuery, [slot, note, id, req.session.user], (err, updateResults) => {
+                    if (err) {
+                        console.error('Error updating registration:', err);
+                        return connection.rollback(() => {
+                            res.status(500).json({ error: 'Internal Server Error' });
+                        });
+                    }
+
+                    // users 테이블의 remainingSlots 업데이트
+                    const updateUserSlotsQuery = `
+                        UPDATE users
+                        SET remainingSlots = remainingSlots - ?
                         WHERE username = ?
                     `;
 
-                    connection.query(getRemainingSlotsQuery, [req.session.user], (err, userResults) => {
+                    connection.query(updateUserSlotsQuery, [slotDifference, req.session.user], (err, userUpdateResults) => {
                         if (err) {
-                            console.error('Error fetching remaining slots:', err);
+                            console.error('Error updating user slots:', err);
                             return connection.rollback(() => {
                                 res.status(500).json({ error: 'Internal Server Error' });
                             });
                         }
 
-                        const remainingSlots = userResults[0].remainingSlots;
-
-                        // 슬롯 차이가 양수이고 남은 슬롯이 부족한 경우 오류 반환
-                        if (slotDifference > 0 && remainingSlots < slotDifference) {
-                            return connection.rollback(() => {
-                                res.status(400).json({ error: '잔여 슬롯이 부족하여 수정할 수 없습니다.' });
-                            });
-                        }
-
-                        // 슬롯을 업데이트하는 쿼리
-                        const updateQuery = `
-                            UPDATE registrations
-                            SET slot = ?, note = ?
-                            WHERE id = ? AND username = ?
-                        `;
-
-                        connection.query(updateQuery, [slot, note, id, req.session.user], (err, updateResults) => {
+                        // 트랜잭션 커밋
+                        connection.commit(err => {
                             if (err) {
-                                console.error('Error updating keyword:', err);
+                                console.error('Transaction commit failed:', err);
                                 return connection.rollback(() => {
                                     res.status(500).json({ error: 'Internal Server Error' });
                                 });
                             }
 
-                            // 슬롯 차이가 있는 경우에만 잔여 슬롯 업데이트
-                            if (slotDifference !== 0) {
-                                const adjustSlotsQuery = `
-                                    UPDATE users 
-                                    SET remainingSlots = remainingSlots - ?
-                                    WHERE username = ?
-                                `;
-
-                                connection.query(adjustSlotsQuery, [slotDifference, req.session.user], (err, adjustResults) => {
-                                    if (err) {
-                                        console.error('Error adjusting slots:', err);
-                                        return connection.rollback(() => {
-                                            res.status(500).json({ error: 'Internal Server Error' });
-                                        });
-                                    }
-
-                                    // 트랜잭션 커밋
-                                    connection.commit(err => {
-                                        if (err) {
-                                            console.error('Transaction commit failed:', err);
-                                            return connection.rollback(() => {
-                                                res.status(500).json({ error: 'Internal Server Error' });
-                                            });
-                                        }
-
-                                        res.json({ success: true });
-                                    });
-                                });
-                            } else {
-                                // 트랜잭션 커밋
-                                connection.commit(err => {
-                                    if (err) {
-                                        console.error('Transaction commit failed:', err);
-                                        return connection.rollback(() => {
-                                            res.status(500).json({ error: 'Internal Server Error' });
-                                        });
-                                    }
-
-                                    res.json({ success: true });
-                                });
-                            }
+                            console.log('Slot update transaction committed successfully.');
+                            res.json({ success: true });
                         });
                     });
-                } else {
-                    connection.rollback(() => {
-                        res.status(404).json({ error: '키워드를 찾을 수 없습니다.' });
-                    });
-                }
+                });
             });
         });
     });
 };
+
 
 //키워드 카운트 추가 라우트
 exports.getKeywordCount = (req, res) => {
