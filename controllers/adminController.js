@@ -449,6 +449,30 @@ exports.handleExpiredSlots = () => {
             console.error('Failed to update user slots:', err);
         } else {
             console.log('User slots updated:', results.affectedRows);
+
+            // 키워드 삭제 로직 추가
+            const keywordDeleteQuery = `
+            DELETE FROM registrations
+            WHERE username IN (
+                SELECT username
+                FROM users
+                WHERE remainingSlots < (
+                    SELECT COUNT(*)
+                    FROM registrations
+                    WHERE registrations.username = users.username
+                )
+            )
+            ORDER BY created_at ASC
+            LIMIT ?;
+            `;
+
+            connection.query(keywordDeleteQuery, [Math.abs(results.affectedRows)], (err, deleteResults) => {
+                if (err) {
+                    console.error('Failed to delete keywords:', err);
+                } else {
+                    console.log('Keywords deleted:', deleteResults.affectedRows);
+                }
+            });
         }
 
         // 만료된 슬롯의 deletion_date와 isSlotActive를 업데이트합니다.
@@ -465,21 +489,21 @@ exports.handleExpiredSlots = () => {
                 console.error('Failed to update expired charge history:', err);
             } else {
                 console.log('Expired charge history marked for deletion and deactivated:', results.affectedRows);
+
+                // 삭제 예정인 슬롯 삭제
+                const deleteQuery = `
+                DELETE FROM charge_history 
+                WHERE deletion_date <= CURDATE() AND deletion_date IS NOT NULL;
+                `;
+
+                connection.query(deleteQuery, (err, results) => {
+                    if (err) {
+                        console.error('Failed to delete charge history:', err);
+                    } else {
+                        console.log('Charge history deleted:', results.affectedRows);
+                    }
+                });
             }
-
-            // 삭제 예정인 슬롯 삭제
-            const deleteQuery = `
-            DELETE FROM charge_history 
-            WHERE deletion_date <= CURDATE() AND deletion_date IS NOT NULL;
-            `;
-
-            connection.query(deleteQuery, (err, results) => {
-                if (err) {
-                    console.error('Failed to delete charge history:', err);
-                } else {
-                    console.log('Charge history deleted:', results.affectedRows);
-                }
-            });
         });
     });
 };

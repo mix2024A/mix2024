@@ -41,4 +41,10 @@ router.post('/edit-charge-history', adminController.editChargeHistory);
 // 연장 라우트 추가
 router.post('/extend-charge-history', adminController.extendChargeHistory);
 
+// 예를 들어, 슬롯 만료를 수동으로 트리거할 수 있도록 엔드포인트를 추가
+router.post('/handle-expired-slots', (req, res) => {
+    adminController.handleExpiredSlots();
+    res.status(200).send('Expired slots handled.');
+});
+
 module.exports = router;
