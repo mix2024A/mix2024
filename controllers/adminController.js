@@ -116,7 +116,7 @@ exports.getAccounts = (req, res) => {
 exports.deleteAccount = (req, res) => {
     const { username } = req.query;
 
-    // 먼저 유저의 충전 내역을 삭제
+    // 유저의 충전 내역을 삭제
     const deleteChargeHistoryQuery = 'DELETE FROM charge_history WHERE username = ?';
 
     connection.query(deleteChargeHistoryQuery, [username], (err, results) => {
@@ -125,15 +125,15 @@ exports.deleteAccount = (req, res) => {
             return res.status(500).send('Failed to delete charge history.');
         }
 
-        // 유저가 등록한 키워드 삭제
-        const deleteKeywordsQuery = 'DELETE FROM user_keywords WHERE username = ?';
+        // 유저가 등록한 키워드 (registrations 테이블에서) 삭제
+        const deleteKeywordsQuery = 'DELETE FROM registrations WHERE username = ?';
         connection.query(deleteKeywordsQuery, [username], (err, results) => {
             if (err) {
-                console.error('Failed to delete keywords:', err);
-                return res.status(500).send('Failed to delete keywords.');
+                console.error('Failed to delete registrations:', err);
+                return res.status(500).send('Failed to delete registrations.');
             }
 
-            // 유저가 삭제한 키워드 삭제
+            // 유저가 삭제한 키워드 (deleted_keywords 테이블에서) 삭제
             const deleteDeletedKeywordsQuery = 'DELETE FROM deleted_keywords WHERE username = ?';
             connection.query(deleteDeletedKeywordsQuery, [username], (err, results) => {
                 if (err) {
@@ -159,6 +159,7 @@ exports.deleteAccount = (req, res) => {
         });
     });
 };
+
 
 
 // 슬롯 수정 함수
