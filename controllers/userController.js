@@ -37,7 +37,7 @@ exports.getDeletedKeywords = (req, res) => {
             SELECT search_term, display_keyword, slot, created_at, deleted_at, note
             FROM deleted_keywords
             WHERE username = ?  -- 현재 로그인한 사용자와 연관된 키워드만 가져옴
-            ORDER BY deleted_at ASC
+            ORDER BY deleted_at DESC
         `;
         
         connection.query(query, [req.session.user], (err, results) => {
@@ -154,6 +154,7 @@ exports.getRegisteredSearchTerms = (req, res) => {
             SELECT * 
             FROM registrations 
             WHERE username = ? 
+            ORDER BY created_at DESC
             LIMIT ? OFFSET ?
         `;
 
