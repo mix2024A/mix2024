@@ -1,4 +1,9 @@
 document.addEventListener("DOMContentLoaded", function () {
+    const scrollPosition = localStorage.getItem('scrollPosition');
+    if (scrollPosition) {
+        window.scrollTo(0, parseInt(scrollPosition, 10));
+        localStorage.removeItem('scrollPosition');  // 스크롤 후 위치를 삭제
+    }
     // 유저 정보 불러오기
     fetch('/user/user-info')
         .then(response => response.json())
@@ -239,7 +244,8 @@ function updateUserInfo() {
     .then(response => response.json())
     .then(result => {
         if (result.success) {
-            // 서버로부터 성공 응답을 받은 후 페이지 새로고침
+            // 스크롤 위치 저장 후 페이지 새로고침
+            localStorage.setItem('scrollPosition', window.scrollY);
             window.location.reload();
         } else {
             alert('수정에 실패했습니다: ' + result.error);
@@ -247,6 +253,7 @@ function updateUserInfo() {
     })
     .catch(error => console.error('Error editing keyword:', error));
 });
+
 
 
 
