@@ -3,6 +3,13 @@ document.addEventListener("DOMContentLoaded", function () {
     let currentPage = 1;
     let itemsPerPage = 50; // 기본값은 50개로 설정
 
+    // 스크롤 위치 복원
+    const scrollPosition = localStorage.getItem('scrollPosition');
+    if (scrollPosition) {
+        window.scrollTo(0, parseInt(scrollPosition, 10));
+        localStorage.removeItem('scrollPosition');  // 스크롤 위치 복원 후 제거
+    }
+
     document.getElementById('itemsPerPage').addEventListener('change', function () {
         if (this.value === 'all') {
             itemsPerPage = Number.MAX_SAFE_INTEGER; // 아주 큰 값으로 설정하여 모든 항목을 가져옴
