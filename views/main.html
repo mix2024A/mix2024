@@ -37,6 +37,13 @@
 
         <!-- 찾기 기능 추가 -->
         <div class="search-container">
+            <!-- 표시할 개수 선택 드롭다운 추가 -->
+            <select id="itemsPerPage" class="search-input">
+                <option value="50"><50개></option>
+                <option value="100">100개</option>
+                <option value="200">200개</option>
+                <option value="all">전체</option>
+            </select>
             <select id="search-dropdown" class="search-input">
                 <option value="search-term">검색어</option>
                 <option value="display-keyword">노출 키워드</option>
@@ -45,14 +52,7 @@
             <input type="text" id="search-input" class="search-input" placeholder="검색어 또는 노출 키워드 입력">
             <button id="search-button" class="search-button">찾기</button>
 
-            <!-- 표시할 개수 선택 추가 -->
-            <select id="itemsPerPage" class="search-input">
-                <option value="50">50개</option>
-                <option value="100">100개</option>
-                <option value="200">200개</option>
-                <option value="all">전체</option>
-            </select>
-        </div>
+
 
         <table class="main-account-table">
             <thead>
