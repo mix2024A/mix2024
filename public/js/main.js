@@ -224,43 +224,38 @@ function setupPagination(totalItems) {
         });
     }
 
-// 테이블에서 수정 버튼 클릭 시 모달 창 표시
-document.querySelector('.main-account-table').addEventListener('click', function(event) {
-    if (event.target.classList.contains('account-edit-button')) {
-        // 수정 버튼 클릭 시 스크롤 위치 저장
-        sessionStorage.setItem('scrollPosition', window.scrollY);
-        console.log("Scroll position saved:", window.scrollY);
+    // 테이블에서 수정 버튼 클릭 시 모달 창 표시
+    document.querySelector('.main-account-table').addEventListener('click', function(event) {
+        if (event.target.classList.contains('account-edit-button')) {
+            // 수정 버튼 클릭 시 스크롤 위치 저장
+            sessionStorage.setItem('scrollPosition', window.scrollY);
+            console.log("Scroll position saved:", window.scrollY); // 이 줄을 추가하여 로그 확인
 
-        // 페이지 새로고침
-        window.location.reload();
+            const row = event.target.closest('tr');
+            const id = row.getAttribute('data-id');
+            const searchTerm = row.querySelector('td:nth-child(2)').textContent;
+            const displayKeyword = row.querySelector('td:nth-child(3)').textContent;
+            const slot = row.querySelector('td:nth-child(4)').textContent;
+            const note = row.querySelector('td:nth-child(6)').textContent;
 
-        // 모달창 여는 코드 (새로고침 후 다시 열리지는 않음)
-        const row = event.target.closest('tr');
-        const id = row.getAttribute('data-id');
-        const searchTerm = row.querySelector('td:nth-child(2)').textContent;
-        const displayKeyword = row.querySelector('td:nth-child(3)').textContent;
-        const slot = row.querySelector('td:nth-child(4)').textContent;
-        const note = row.querySelector('td:nth-child(6)').textContent;
+            document.getElementById('edit-search-term').value = searchTerm;
+            document.getElementById('edit-display-keyword').value = displayKeyword;
+            document.getElementById('edit-slot').value = slot;
+            document.getElementById('edit-note').value = note;
+            
+            document.getElementById('editModal').setAttribute('data-id', id);
+            document.getElementById('editModal').style.display = 'block';
+            document.getElementById('modalOverlay').style.display = 'block';
 
-        document.getElementById('edit-search-term').value = searchTerm;
-        document.getElementById('edit-display-keyword').value = displayKeyword;
-        document.getElementById('edit-slot').value = slot;
-        document.getElementById('edit-note').value = note;
-        
-        document.getElementById('editModal').setAttribute('data-id', id);
-        document.getElementById('editModal').style.display = 'block';
-        document.getElementById('modalOverlay').style.display = 'block';
-
-        // 엔터 키로 저장 버튼 클릭하기
-        document.getElementById('editModal').addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                document.getElementById('saveEdit').click();
-            }
-        });
-    }
-});
-
+            // 엔터 키로 저장 버튼 클릭하기
+            document.getElementById('editModal').addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    document.getElementById('saveEdit').click();
+                }
+            });
+        }
+    });
 
     // 수정 모달의 저장 버튼 클릭 시
     document.getElementById('saveEdit').addEventListener('click', function() {
