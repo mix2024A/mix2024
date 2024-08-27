@@ -1,16 +1,10 @@
 document.addEventListener("DOMContentLoaded", function () {
-    console.log("Page fully loaded and DOM is ready");
+
 
     let currentPage = 1;
     let itemsPerPage = 50; // 기본값은 50개로 설정
 
-    // 페이지가 로드된 후 스크롤 위치 복원 (수정 완료 시에만)
-    const scrollPosition = sessionStorage.getItem('scrollPosition');
-    console.log("Scroll position retrieved:", scrollPosition);  // 스크롤 위치 복원 전에 위치 출력
-    if (scrollPosition !== null) {
-        window.scrollTo(0, parseInt(scrollPosition, 10));
-        sessionStorage.removeItem('scrollPosition'); // 위치 복원 후 삭제
-    }
+
 
     document.getElementById('itemsPerPage').addEventListener('change', function () {
         if (this.value === 'all') {
@@ -228,9 +222,7 @@ function setupPagination(totalItems) {
     // 테이블에서 수정 버튼 클릭 시 모달 창 표시
     document.querySelector('.main-account-table').addEventListener('click', function(event) {
         if (event.target.classList.contains('account-edit-button')) {
-            // 수정 버튼 클릭 시 스크롤 위치 저장
-            sessionStorage.setItem('scrollPosition', window.scrollY);
-            console.log("Scroll position saved:", window.scrollY); // 이 줄을 추가하여 로그 확인
+
 
             const row = event.target.closest('tr');
             const id = row.getAttribute('data-id');
@@ -299,8 +291,7 @@ function setupPagination(totalItems) {
                 document.getElementById('editModal').style.display = 'none';
                 document.getElementById('modalOverlay').style.display = 'none';
 
-                // 페이지 새로고침
-                window.location.reload();
+
             } else {
                 alert('수정에 실패했습니다: ' + result.error);
             }
