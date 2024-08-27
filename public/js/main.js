@@ -305,59 +305,73 @@ function setupPagination(totalItems) {
         document.getElementById('modalOverlay').style.display = 'none';
     });
 
-    // 테이블에서 삭제 버튼 클릭 시 모달 창 표시
-    document.querySelector('.main-account-table').addEventListener('click', function(event) {
-        if (event.target.classList.contains('account-delete-button')) {
-            const row = event.target.closest('tr');
-            const keyword = row.querySelectorAll('td')[1].textContent; // 키워드 컬럼
-            const id = row.getAttribute('data-id'); // id 가져오기
-            document.getElementById('delete-keyword').textContent = keyword;
-            document.getElementById('deleteModal').style.display = 'block';
-            document.getElementById('modalOverlay').style.display = 'block'; // 오버레이 표시
-            document.getElementById('confirmDelete').setAttribute('data-id', id); // 삭제할 id를 버튼에 저장
-            document.getElementById('confirmDelete').focus(); // 삭제 버튼에 포커스 설정
-        }
-    });
+// 테이블에서 삭제 버튼 클릭 시 모달 창 표시
+document.querySelector('.main-account-table').addEventListener('click', function(event) {
+    if (event.target.classList.contains('account-delete-button')) {
+        // 삭제 전에 수정 횟수 확인
+        fetch('/user/user-info')
+            .then(response => response.json())
+            .then(data => {
+                if (data.editCount > 0) {
+                    const row = event.target.closest('tr');
+                    const keyword = row.querySelectorAll('td')[1].textContent; // 키워드 컬럼
+                    const id = row.getAttribute('data-id'); // id 가져오기
+                    document.getElementById('delete-keyword').textContent = keyword;
+                    document.getElementById('deleteModal').style.display = 'block';
+                    document.getElementById('modalOverlay').style.display = 'block'; // 오버레이 표시
+                    document.getElementById('confirmDelete').setAttribute('data-id', id); // 삭제할 id를 버튼에 저장
+                    document.getElementById('confirmDelete').focus(); // 삭제 버튼에 포커스 설정
+                } else {
+                    alert('수정 횟수가 부족하여 키워드를 삭제할 수 없습니다.');
+                }
+            })
+            .catch(error => console.error('Error checking edit count:', error));
+    }
+});
 
-    // 삭제 모달의 취소 버튼 클릭 시 모달 창 닫기
-    document.getElementById('cancelDelete').addEventListener('click', function() {
-        document.getElementById('deleteModal').style.display = 'none';
-        document.getElementById('modalOverlay').style.display = 'none'; // 오버레이 숨기기
-    });
+// 삭제 모달의 확인 버튼 클릭 시 키워드 삭제
+document.getElementById('confirmDelete').addEventListener('click', function() {
+    const idToDelete = this.getAttribute('data-id');
+    document.getElementById('modalOverlay').style.display = 'none'; // 오버레이 숨기기
 
-    // 삭제 모달의 확인 버튼 클릭 시 키워드 삭제
-    document.getElementById('confirmDelete').addEventListener('click', function() {
-        const idToDelete = this.getAttribute('data-id');
-        document.getElementById('modalOverlay').style.display = 'none'; // 오버레이 숨기기
-
-        fetch('/user/delete-keyword', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ id: idToDelete }) // id를 서버로 전송
-        })
+    // 삭제 전에 수정 횟수 재확인
+    fetch('/user/user-info')
         .then(response => response.json())
-        .then(result => {
-            if (result.success) {
-                document.getElementById('deleteModal').style.display = 'none';
-                
-                // 테이블을 다시 로드하기 전에 현재 페이지에 남아있는 항목이 없을 경우 이전 페이지로 이동
-                fetch(`/user/get-registered-search-terms?page=${currentPage}&limit=${itemsPerPage}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.items.length === 0 && currentPage > 1) {
-                            currentPage--; // 현재 페이지에서 항목이 없으면 이전 페이지로 이동
-                        }
-                        loadRegisteredSearchTerms(); // 테이블 갱신
-                        updateUserInfo(); // 슬롯 및 키워드 수 업데이트
-                    });
+        .then(data => {
+            if (data.editCount > 0) {
+                fetch('/user/delete-keyword', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ id: idToDelete }) // id를 서버로 전송
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        document.getElementById('deleteModal').style.display = 'none';
+                        
+                        // 테이블을 다시 로드하기 전에 현재 페이지에 남아있는 항목이 없을 경우 이전 페이지로 이동
+                        fetch(`/user/get-registered-search-terms?page=${currentPage}&limit=${itemsPerPage}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.items.length === 0 && currentPage > 1) {
+                                    currentPage--; // 현재 페이지에서 항목이 없으면 이전 페이지로 이동
+                                }
+                                loadRegisteredSearchTerms(); // 테이블 갱신
+                                updateUserInfo(); // 슬롯 및 키워드 수 업데이트
+                            });
+                    } else {
+                        alert('키워드 삭제에 실패했습니다: ' + result.error);
+                    }
+                })
+                .catch(error => console.error('Error deleting keyword:', error));
             } else {
-                alert('키워드 삭제에 실패했습니다: ' + result.error);
+                alert('수정 횟수가 부족하여 키워드를 삭제할 수 없습니다.');
             }
         })
-        .catch(error => console.error('Error deleting keyword:', error));
-    });
+        .catch(error => console.error('Error checking edit count before deletion:', error));
+});
 
     // 페이지 로드 시 테이블에 등록된 검색어 표시
     loadRegisteredSearchTerms();

@@ -213,7 +213,7 @@ exports.deleteKeyword = (req, res) => {
 
                 // 수정 횟수가 0이면 삭제를 허용하지 않음
                 if (editCount <= 0) {
-                    return res.status(400).json({ error: '수정 횟수가 부족하여 키워드를 삭제할 수 없습니다.' });
+                    return res.status(400).json({ error: '삭제 횟수가 부족하여 키워드를 삭제할 수 없습니다.' });
                 }
 
                 // 삭제할 키워드의 데이터를 먼저 가져옴
