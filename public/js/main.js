@@ -250,54 +250,59 @@ function setupPagination(totalItems) {
         }
     });
 
-    // 수정 모달의 저장 버튼 클릭 시
+    let isUpdating = false;  // 중복 요청 방지 플래그 추가
+
     document.getElementById('saveEdit').addEventListener('click', function() {
+        if (isUpdating) return;  // 이미 업데이트 중이면 아무 작업도 하지 않음
+    
+        isUpdating = true;  // 업데이트 시작
+    
         const idToEdit = document.getElementById('editModal').getAttribute('data-id');
         const slot = document.getElementById('edit-slot').value.trim();
         const note = document.getElementById('edit-note').value.trim();
-
-        // 슬롯이 0 이하이면 수정 불가
+    
         if (slot <= 0) {
             alert('슬롯 수는 0보다 커야 합니다.');
+            isUpdating = false;  // 업데이트 종료
             return;
         }
-
+    
         const data = {
             id: idToEdit,
             slot: slot,
             note: note
         };
-
+    
         fetch('/user/edit-keyword', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Cache-Control': 'no-store'  // 캐시 방지
+                'Cache-Control': 'no-store'
             },
             body: JSON.stringify(data)
         })
         .then(response => response.json())
         .then(result => {
             if (result.success) {
-                // 성공적으로 수정되었을 때, 해당 행만 업데이트
                 const row = document.querySelector(`tr[data-id="${idToEdit}"]`);
                 row.querySelector('td:nth-child(4)').textContent = slot;
                 row.querySelector('td:nth-child(6)').textContent = note;
-
-                // 잔여 슬롯 및 기타 정보 업데이트
+    
                 updateUserInfo();
-
+    
                 // 모달 닫기
                 document.getElementById('editModal').style.display = 'none';
                 document.getElementById('modalOverlay').style.display = 'none';
-
-
             } else {
                 alert('수정에 실패했습니다: ' + result.error);
             }
         })
-        .catch(error => console.error('Error editing keyword:', error));
+        .catch(error => console.error('Error editing keyword:', error))
+        .finally(() => {
+            isUpdating = false;  // 업데이트 종료
+        });
     });
+    
 
     // 수정 모달의 취소 버튼 클릭 시 모달 창 닫기
     document.getElementById('cancelEdit').addEventListener('click', function() {
