@@ -226,6 +226,9 @@ function setupPagination(totalItems) {
     // 테이블에서 수정 버튼 클릭 시 모달 창 표시
     document.querySelector('.main-account-table').addEventListener('click', function(event) {
         if (event.target.classList.contains('account-edit-button')) {
+            // 수정 버튼 클릭 시 스크롤 위치 저장
+            sessionStorage.setItem('scrollPosition', window.scrollY);
+
             const row = event.target.closest('tr');
             const id = row.getAttribute('data-id');
             const searchTerm = row.querySelector('td:nth-child(2)').textContent;
@@ -281,9 +284,6 @@ function setupPagination(totalItems) {
         .then(response => response.json())
         .then(result => {
             if (result.success) {
-                // 스크롤 위치 저장
-                sessionStorage.setItem('scrollPosition', window.scrollY);
-                
                 // 성공적으로 수정되었을 때, 해당 행만 업데이트
                 const row = document.querySelector(`tr[data-id="${idToEdit}"]`);
                 row.querySelector('td:nth-child(4)').textContent = slot;
