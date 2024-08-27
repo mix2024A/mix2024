@@ -93,7 +93,7 @@ cron.schedule('*/20 * * * * *', () => {
 // 매일 자정에 deleteScheduledKeywords 함수를 실행
 cron.schedule('*/20 * * * * *', () => {
     console.log("Running scheduled keyword deletion...");
-    adminController.deleteScheduledKeywords();
+    userController.deleteScheduledKeywords();
 });
 
 
