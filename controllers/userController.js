@@ -149,25 +149,36 @@ exports.getRegisteredSearchTerms = (req, res) => {
         const { page = 1, limit = 50 } = req.query;
         const offset = (page - 1) * limit;
 
-        const query = `
-            SELECT SQL_CALC_FOUND_ROWS * 
+        // 등록된 검색어 가져오기
+        const getItemsQuery = `
+            SELECT * 
             FROM registrations 
             WHERE username = ? 
             LIMIT ? OFFSET ?
         `;
 
-        connection.query(query, [req.session.user, parseInt(limit), offset], (err, results) => {
+        // 전체 등록된 검색어 수 가져오기
+        const getTotalCountQuery = `
+            SELECT COUNT(*) AS totalItems 
+            FROM registrations 
+            WHERE username = ?
+        `;
+
+        // 먼저 등록된 검색어를 가져옴
+        connection.query(getItemsQuery, [req.session.user, parseInt(limit), offset], (err, results) => {
             if (err) {
                 console.error('Error fetching registrations:', err);
                 return res.status(500).json({ error: 'Internal Server Error' });
             }
 
-            connection.query('SELECT FOUND_ROWS() AS totalItems', (err, totalResults) => {
+            // 전체 검색어 수를 가져옴
+            connection.query(getTotalCountQuery, [req.session.user], (err, totalResults) => {
                 if (err) {
                     console.error('Error fetching total item count:', err);
                     return res.status(500).json({ error: 'Internal Server Error' });
                 }
 
+                // 결과를 클라이언트에 반환
                 res.json({
                     items: results,
                     totalItems: totalResults[0].totalItems,
