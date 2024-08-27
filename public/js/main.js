@@ -1,5 +1,14 @@
 document.addEventListener("DOMContentLoaded", function () {
     
+    let currentPage = 1;
+    let itemsPerPage = 50; // 기본값은 50개로 설정
+
+    document.getElementById('itemsPerPage').addEventListener('change', function () {
+        itemsPerPage = parseInt(this.value);
+        currentPage = 1; // 페이지 번호를 1로 초기화
+        loadRegisteredSearchTerms(); // 항목 수 변경 시 다시 로드
+    });
+
     // 유저 정보 불러오기
     fetch('/user/user-info')
         .then(response => response.json())
@@ -15,7 +24,6 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .catch(error => console.error('Error:', error));
 
-
     // 등록된 키워드 개수 불러오기
     fetch('/user/get-keyword-count')
         .then(response => response.json())
@@ -25,33 +33,33 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .catch(error => console.error('Error:', error));
 
-// 유저 정보 업데이트 함수
-function updateUserInfo() {
-    fetch('/user/user-info')
-        .then(response => response.json())
-        .then(data => {
-            if (data.username) {
-                document.getElementById('slot').textContent = data.slot;  // 구매슬롯 표시
-                document.getElementById('remainingSlots').textContent = data.remainingSlots;  // 잔여슬롯 표시
-                document.getElementById('editCount').textContent = data.editCount;  // 수정횟수 표시
+    // 유저 정보 업데이트 함수
+    function updateUserInfo() {
+        fetch('/user/user-info')
+            .then(response => response.json())
+            .then(data => {
+                if (data.username) {
+                    document.getElementById('slot').textContent = data.slot;  // 구매슬롯 표시
+                    document.getElementById('remainingSlots').textContent = data.remainingSlots;  // 잔여슬롯 표시
+                    document.getElementId('editCount').textContent = data.editCount;  // 수정횟수 표시
 
-                // 등록된 키워드 개수 불러오기 및 업데이트
-                fetch('/user/get-keyword-count')
-                    .then(response => response.json())
-                    .then(data => {
-                        const keywordCount = data.keywordCount || 0;  // 값이 없을 때 0으로 설정
-                        const keywordCountElement = document.getElementById('keywordCount');
-                        if (keywordCountElement) {
-                            keywordCountElement.textContent = keywordCount;  // 등록 키워드 수 표시
-                        }
-                    })
-                    .catch(error => console.error('Error fetching keyword count:', error));
-            } else {
-                window.location.href = '/'; // 유저 정보가 없으면 로그인 페이지로 리디렉션
-            }
-        })
-        .catch(error => console.error('Error fetching user info:', error));
-}
+                    // 등록된 키워드 개수 불러오기 및 업데이트
+                    fetch('/user/get-keyword-count')
+                        .then(response => response.json())
+                        .then(data => {
+                            const keywordCount = data.keywordCount || 0;  // 값이 없을 때 0으로 설정
+                            const keywordCountElement = document.getElementById('keywordCount');
+                            if (keywordCountElement) {
+                                keywordCountElement.textContent = keywordCount;  // 등록 키워드 수 표시
+                            }
+                        })
+                        .catch(error => console.error('Error fetching keyword count:', error));
+                } else {
+                    window.location.href = '/'; // 유저 정보가 없으면 로그인 페이지로 리디렉션
+                }
+            })
+            .catch(error => console.error('Error fetching user info:', error));
+    }
 
 
 
@@ -114,34 +122,59 @@ function updateUserInfo() {
    });
 
     // 등록된 검색어 로드 및 테이블 업데이트
+    // 등록된 검색어 로드 및 테이블 업데이트
     function loadRegisteredSearchTerms() {
-        fetch('/user/get-registered-search-terms')
+        fetch(`/user/get-registered-search-terms?page=${currentPage}&limit=${itemsPerPage}`)
             .then(response => response.json())
             .then(data => {
                 const tableBody = document.querySelector('tbody');
                 tableBody.innerHTML = ''; 
-                
-                data.reverse().forEach((item, index) => {
+
+                data.items.forEach((item, index) => {
                     const date = new Date(item.created_at);
                     const formattedDate = date.toISOString().split('T')[0];
 
                     const row = document.createElement('tr');
-                    row.setAttribute('data-id', item.id); // 행에 id 속성 추가
+                    row.setAttribute('data-id', item.id);
                     row.innerHTML = `
-                        <td></td> 
+                        <td>${index + 1}</td>
                         <td>${item.search_term}</td>
                         <td>${item.display_keyword}</td>
                         <td>${item.slot}</td>
-                        <td>${formattedDate}</td>  
+                        <td>${formattedDate}</td>
                         <td>${item.note}</td>
                         <td><button class="account-edit-button">수정</button></td>
                         <td><button class="account-delete-button">삭제</button></td>
                     `;
                     tableBody.appendChild(row);
                 });
+
+                setupPagination(data.totalItems);
             })
             .catch(error => console.error('Error loading registered search terms:', error));
     }
+
+    // 페이지네이션 설정 함수
+    function setupPagination(totalItems) {
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        const paginationContainer = document.getElementById('pagination');
+        paginationContainer.innerHTML = '';
+
+        for (let i = 1; i <= totalPages; i++) {
+            const pageButton = document.createElement('button');
+            pageButton.textContent = i;
+            pageButton.classList.add('page-button');
+            if (i === currentPage) {
+                pageButton.classList.add('active');
+            }
+            pageButton.addEventListener('click', function () {
+                currentPage = i;
+                loadRegisteredSearchTerms();
+            });
+            paginationContainer.appendChild(pageButton);
+        }
+    }
+
 
     // 드롭다운 필터링 기능 추가
     document.getElementById('search-button').addEventListener('click', function() {
