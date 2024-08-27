@@ -428,59 +428,58 @@ exports.editChargeHistory = (req, res) => {
 };
 
 exports.handleExpiredSlots = () => {
-    // 만료된 슬롯의 사용자 슬롯을 업데이트하면서 동시에 비활성화 처리
+    // 사용자 슬롯을 먼저 차감한 후 비활성화 처리
     const updateAndDeactivateSlotsQuery = `
     UPDATE users u
     JOIN (
         SELECT username, SUM(amount) AS expiredSlotAmount
         FROM charge_history
-        WHERE expiry_date < CURDATE() AND deletion_date IS NOT NULL AND isSlotActive = 1
+        WHERE expiry_date < CURDATE() AND isSlotActive = 1
         GROUP BY username
     ) ch ON u.username = ch.username
     SET 
         u.slot = GREATEST(0, u.slot - IFNULL(ch.expiredSlotAmount, 0)),
         u.remainingSlots = GREATEST(0, u.remainingSlots - IFNULL(ch.expiredSlotAmount, 0)),
-        u.editCount = GREATEST(0, u.editCount - IFNULL(ch.expiredSlotAmount, 0)),
-        u.isSlotActive = 0  -- 비활성화 시 isSlotActive를 0으로 설정
+        u.editCount = GREATEST(0, u.editCount - IFNULL(ch.expiredSlotAmount, 0))
     WHERE ch.expiredSlotAmount > 0;
     `;
 
     connection.query(updateAndDeactivateSlotsQuery, (err, results) => {
         if (err) {
-            console.error('Failed to update and deactivate user slots:', err);
+            console.error('Failed to update user slots:', err);
         } else {
-            console.log('User slots updated and deactivated:', results.affectedRows);
+            console.log('User slots updated:', results.affectedRows);
         }
 
-        // 만료된 슬롯의 deletion_date를 업데이트합니다.
+        // 만료된 슬롯의 deletion_date와 isSlotActive를 업데이트합니다.
         const updateExpiredQuery = `
             UPDATE charge_history 
             SET 
                 deletion_date = DATE_ADD(expiry_date, INTERVAL 3 DAY), -- 만료일로부터 3일 후에 삭제
                 isSlotActive = 0 -- 만료된 슬롯은 비활성화
-            WHERE expiry_date < CURDATE() AND deletion_date IS NULL;
+            WHERE expiry_date < CURDATE() AND deletion_date IS NULL AND isSlotActive = 1;
         `;
 
         connection.query(updateExpiredQuery, (err, results) => {
             if (err) {
                 console.error('Failed to update expired charge history:', err);
             } else {
-                console.log('Expired charge history marked for deletion:', results.affectedRows);
+                console.log('Expired charge history marked for deletion and deactivated:', results.affectedRows);
             }
-        });
 
-        // 삭제 예정인 슬롯 삭
-        const deleteQuery = `
-        DELETE FROM charge_history 
-        WHERE deletion_date <= CURDATE() AND deletion_date IS NOT NULL;
-        `;
+            // 삭제 예정인 슬롯 삭제
+            const deleteQuery = `
+            DELETE FROM charge_history 
+            WHERE deletion_date <= CURDATE() AND deletion_date IS NOT NULL;
+            `;
 
-        connection.query(deleteQuery, (err, results) => {
-            if (err) {
-                console.error('Failed to delete charge history:', err);
-            } else {
-                console.log('Charge history deleted:', results.affectedRows);
-            }
+            connection.query(deleteQuery, (err, results) => {
+                if (err) {
+                    console.error('Failed to delete charge history:', err);
+                } else {
+                    console.log('Charge history deleted:', results.affectedRows);
+                }
+            });
         });
     });
 };
