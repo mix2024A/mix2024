@@ -1,8 +1,14 @@
 document.addEventListener("DOMContentLoaded", function () {
-    
+
     let currentPage = 1;
     let itemsPerPage = 50; // 기본값은 50개로 설정
 
+    // 페이지가 로드된 후 스크롤 위치 복원 (수정 완료 시에만)
+    const scrollPosition = sessionStorage.getItem('scrollPosition');
+    if (scrollPosition !== null) {
+        window.scrollTo(0, parseInt(scrollPosition, 10));
+        sessionStorage.removeItem('scrollPosition'); // 위치 복원 후 삭제
+    }
 
     document.getElementById('itemsPerPage').addEventListener('change', function () {
         if (this.value === 'all') {
@@ -66,19 +72,12 @@ document.addEventListener("DOMContentLoaded", function () {
             .catch(error => console.error('Error fetching user info:', error));
     }
 
-
-
     // 등록 버튼 클릭 시 서버로 데이터 전송
     document.getElementById('register-button').addEventListener('click', function() {
         const searchTerm = document.getElementById('search-term').value ? document.getElementById('search-term').value.trim() : '';
         const displayKeyword = document.getElementById('display-keyword').value ? document.getElementById('display-keyword').value.trim() : '';
         const slot = document.getElementById('slot-input').value ? document.getElementById('slot-input').value.trim() : ''; 
         const note = document.getElementById('note').value ? document.getElementById('note').value.trim() : '';
-
-        console.log('Search Term:', searchTerm);
-        console.log('Display Keyword:', displayKeyword);
-        console.log('Slot:', slot);
-        console.log('Note:', note);
 
         if (!searchTerm || !displayKeyword || !slot) {
             alert('검색어, 노출 키워드 및 슬롯은 필수 입력 항목입니다.');
@@ -126,7 +125,6 @@ document.addEventListener("DOMContentLoaded", function () {
        }
    });
 
-    
     // 등록된 검색어 로드 및 테이블 업데이트
     function loadRegisteredSearchTerms() {
         fetch(`/user/get-registered-search-terms?page=${currentPage}&limit=${itemsPerPage}`)
@@ -187,8 +185,6 @@ function setupPagination(totalItems) {
     }
 }
 
-
-
     // 드롭다운 필터링 기능 추가
     document.getElementById('search-button').addEventListener('click', function() {
         performSearch();
@@ -227,7 +223,6 @@ function setupPagination(totalItems) {
         });
     }
 
-
     // 테이블에서 수정 버튼 클릭 시 모달 창 표시
     document.querySelector('.main-account-table').addEventListener('click', function(event) {
         if (event.target.classList.contains('account-edit-button')) {
@@ -257,55 +252,58 @@ function setupPagination(totalItems) {
         }
     });
 
-// 수정 모달의 저장 버튼 클릭 시
-document.getElementById('saveEdit').addEventListener('click', function() {
-    const idToEdit = document.getElementById('editModal').getAttribute('data-id');
-    const slot = document.getElementById('edit-slot').value.trim();
-    const note = document.getElementById('edit-note').value.trim();
+    // 수정 모달의 저장 버튼 클릭 시
+    document.getElementById('saveEdit').addEventListener('click', function() {
+        const idToEdit = document.getElementById('editModal').getAttribute('data-id');
+        const slot = document.getElementById('edit-slot').value.trim();
+        const note = document.getElementById('edit-note').value.trim();
 
-    // 슬롯이 0 이하이면 수정 불가
-    if (slot <= 0) {
-        alert('슬롯 수는 0보다 커야 합니다.');
-        return;
-    }
-
-    const data = {
-        id: idToEdit,
-        slot: slot,
-        note: note
-    };
-
-    fetch('/user/edit-keyword', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Cache-Control': 'no-store'  // 캐시 방지
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(result => {
-        if (result.success) {
-            // 성공적으로 수정되었을 때, 해당 행만 업데이트
-            const row = document.querySelector(`tr[data-id="${idToEdit}"]`);
-            row.querySelector('td:nth-child(4)').textContent = slot;
-            row.querySelector('td:nth-child(6)').textContent = note;
-
-            // 잔여 슬롯 및 기타 정보 업데이트
-            updateUserInfo();
-
-            // 모달 닫기
-            document.getElementById('editModal').style.display = 'none';
-            document.getElementById('modalOverlay').style.display = 'none';
-        } else {
-            alert('수정에 실패했습니다: ' + result.error);
+        // 슬롯이 0 이하이면 수정 불가
+        if (slot <= 0) {
+            alert('슬롯 수는 0보다 커야 합니다.');
+            return;
         }
-    })
-    .catch(error => console.error('Error editing keyword:', error));
-});
 
+        const data = {
+            id: idToEdit,
+            slot: slot,
+            note: note
+        };
 
+        fetch('/user/edit-keyword', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-store'  // 캐시 방지
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                // 스크롤 위치 저장
+                sessionStorage.setItem('scrollPosition', window.scrollY);
+                
+                // 성공적으로 수정되었을 때, 해당 행만 업데이트
+                const row = document.querySelector(`tr[data-id="${idToEdit}"]`);
+                row.querySelector('td:nth-child(4)').textContent = slot;
+                row.querySelector('td:nth-child(6)').textContent = note;
 
+                // 잔여 슬롯 및 기타 정보 업데이트
+                updateUserInfo();
+
+                // 모달 닫기
+                document.getElementById('editModal').style.display = 'none';
+                document.getElementById('modalOverlay').style.display = 'none';
+
+                // 페이지 새로고침
+                window.location.reload();
+            } else {
+                alert('수정에 실패했습니다: ' + result.error);
+            }
+        })
+        .catch(error => console.error('Error editing keyword:', error));
+    });
 
     // 수정 모달의 취소 버튼 클릭 시 모달 창 닫기
     document.getElementById('cancelEdit').addEventListener('click', function() {
@@ -333,42 +331,40 @@ document.getElementById('saveEdit').addEventListener('click', function() {
         document.getElementById('modalOverlay').style.display = 'none'; // 오버레이 숨기기
     });
 
-// 삭제 모달의 확인 버튼 클릭 시 키워드 삭제
-document.getElementById('confirmDelete').addEventListener('click', function() {
-    const idToDelete = this.getAttribute('data-id');
-    document.getElementById('modalOverlay').style.display = 'none'; // 오버레이 숨기기
+    // 삭제 모달의 확인 버튼 클릭 시 키워드 삭제
+    document.getElementById('confirmDelete').addEventListener('click', function() {
+        const idToDelete = this.getAttribute('data-id');
+        document.getElementById('modalOverlay').style.display = 'none'; // 오버레이 숨기기
 
-    fetch('/user/delete-keyword', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ id: idToDelete }) // id를 서버로 전송
-    })
-    .then(response => response.json())
-    .then(result => {
-        if (result.success) {
-            document.getElementById('deleteModal').style.display = 'none';
-            
-            // 테이블을 다시 로드하기 전에 현재 페이지에 남아있는 항목이 없을 경우 이전 페이지로 이동
-            fetch(`/user/get-registered-search-terms?page=${currentPage}&limit=${itemsPerPage}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.items.length === 0 && currentPage > 1) {
-                        currentPage--; // 현재 페이지에서 항목이 없으면 이전 페이지로 이동
-                    }
-                    loadRegisteredSearchTerms(); // 테이블 갱신
-                    updateUserInfo(); // 슬롯 및 키워드 수 업데이트
-                });
-        } else {
-            alert('키워드 삭제에 실패했습니다: ' + result.error);
-        }
-    })
-    .catch(error => console.error('Error deleting keyword:', error));
-});
+        fetch('/user/delete-keyword', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id: idToDelete }) // id를 서버로 전송
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                document.getElementById('deleteModal').style.display = 'none';
+                
+                // 테이블을 다시 로드하기 전에 현재 페이지에 남아있는 항목이 없을 경우 이전 페이지로 이동
+                fetch(`/user/get-registered-search-terms?page=${currentPage}&limit=${itemsPerPage}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.items.length === 0 && currentPage > 1) {
+                            currentPage--; // 현재 페이지에서 항목이 없으면 이전 페이지로 이동
+                        }
+                        loadRegisteredSearchTerms(); // 테이블 갱신
+                        updateUserInfo(); // 슬롯 및 키워드 수 업데이트
+                    });
+            } else {
+                alert('키워드 삭제에 실패했습니다: ' + result.error);
+            }
+        })
+        .catch(error => console.error('Error deleting keyword:', error));
+    });
 
-
-    
     // 페이지 로드 시 테이블에 등록된 검색어 표시
     loadRegisteredSearchTerms();
 });
