@@ -4,7 +4,11 @@ document.addEventListener("DOMContentLoaded", function () {
     let itemsPerPage = 50; // 기본값은 50개로 설정
 
     document.getElementById('itemsPerPage').addEventListener('change', function () {
-        itemsPerPage = parseInt(this.value);
+        if (this.value === 'all') {
+            itemsPerPage = Number.MAX_SAFE_INTEGER; // 아주 큰 값으로 설정하여 모든 항목을 가져옴
+        } else {
+            itemsPerPage = parseInt(this.value);
+        }
         currentPage = 1; // 페이지 번호를 1로 초기화
         loadRegisteredSearchTerms(); // 항목 수 변경 시 다시 로드
     });
