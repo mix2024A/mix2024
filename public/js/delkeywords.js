@@ -28,6 +28,13 @@ function loadDeletedKeywords() {
             const tableBody = document.querySelector('tbody');
             tableBody.innerHTML = ''; 
 
+            if (!data || data.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td colspan="7">삭제된 키워드가 없습니다.</td>`;
+                tableBody.appendChild(row);
+                return;
+            }
+
             data.forEach((item, index) => {
                 const dateCreated = new Date(item.created_at);
                 const formattedDateCreated = `${dateCreated.getFullYear()}-${('0' + (dateCreated.getMonth() + 1)).slice(-2)}-${('0' + dateCreated.getDate()).slice(-2)}`;
