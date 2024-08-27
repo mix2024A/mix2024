@@ -248,9 +248,6 @@ exports.deleteKeyword = (req, res) => {
     });
 };
 
-
-
-
 exports.editKeyword = (req, res) => {
     validateSession(req, res, () => {
         const { id, slot, note } = req.body;
@@ -276,42 +273,58 @@ exports.editKeyword = (req, res) => {
                 const currentSlot = results[0].slot;
                 const slotDifference = slot - currentSlot; // 새로운 슬롯과 기존 슬롯의 차이 계산
 
-                // 슬롯 조정 쿼리
-                const adjustSlotsQuery = `
-                    UPDATE users 
-                    SET remainingSlots = remainingSlots - ? 
-                    WHERE username = ? AND remainingSlots >= ?
+                // 사용자의 남은 슬롯을 가져옴
+                const getRemainingSlotsQuery = `
+                    SELECT remainingSlots 
+                    FROM users 
+                    WHERE username = ?
                 `;
 
-                connection.query(adjustSlotsQuery, [slotDifference, req.session.user, slotDifference], (err, results) => {
+                connection.query(getRemainingSlotsQuery, [req.session.user], (err, userResults) => {
                     if (err) {
-                        console.error('Error adjusting slots:', err);
-                        return res.status(500).json({ error: '내부 서버 오류가 발생했습니다.' });
+                        console.error('Error fetching remaining slots:', err);
+                        return res.status(500).json({ error: 'Internal Server Error' });
                     }
 
-                    if (results.affectedRows > 0) {
-                        // 슬롯 조정이 성공한 경우에만 키워드 수정
-                        const updateQuery = `
-                            UPDATE registrations
-                            SET slot = ?, note = ?
-                            WHERE id = ? AND username = ?
-                        `;
+                    const remainingSlots = userResults[0].remainingSlots;
 
-                        connection.query(updateQuery, [slot, note, id, req.session.user], (err, results) => {
-                            if (err) {
-                                console.error('Error editing keyword:', err);
-                                return res.status(500).json({ error: '내부 서버 오류가 발생했습니다.' });
-                            }
+                    if (slotDifference > 0 && remainingSlots < slotDifference) {
+                        return res.status(400).json({ error: '슬롯이 부족합니다.' });
+                    }
 
-                            if (results.affectedRows > 0) {
+                    // 슬롯을 업데이트하는 쿼리
+                    const updateQuery = `
+                        UPDATE registrations
+                        SET slot = ?, note = ?
+                        WHERE id = ? AND username = ?
+                    `;
+
+                    connection.query(updateQuery, [slot, note, id, req.session.user], (err, updateResults) => {
+                        if (err) {
+                            console.error('Error updating keyword:', err);
+                            return res.status(500).json({ error: '내부 서버 오류가 발생했습니다.' });
+                        }
+
+                        // 슬롯 차이가 있는 경우 잔여 슬롯 업데이트
+                        if (slotDifference !== 0) {
+                            const adjustSlotsQuery = `
+                                UPDATE users 
+                                SET remainingSlots = remainingSlots - ? 
+                                WHERE username = ?
+                            `;
+
+                            connection.query(adjustSlotsQuery, [slotDifference, req.session.user], (err, adjustResults) => {
+                                if (err) {
+                                    console.error('Error adjusting slots:', err);
+                                    return res.status(500).json({ error: '내부 서버 오류가 발생했습니다.' });
+                                }
+
                                 res.json({ success: true });
-                            } else {
-                                res.status(404).json({ error: '키워드를 찾을 수 없거나 수정할 권한이 없습니다.' });
-                            }
-                        });
-                    } else {
-                        res.status(400).json({ error: '슬롯이 부족합니다.' });
-                    }
+                            });
+                        } else {
+                            res.json({ success: true });
+                        }
+                    });
                 });
             } else {
                 res.status(404).json({ error: '키워드를 찾을 수 없습니다.' });
@@ -319,6 +332,7 @@ exports.editKeyword = (req, res) => {
         });
     });
 };
+
 //키워드 카운트 추가 라우트
 exports.getKeywordCount = (req, res) => {
     validateSession(req, res, () => {
