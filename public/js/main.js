@@ -339,31 +339,39 @@ document.getElementById('saveEdit').addEventListener('click', function() {
         document.getElementById('modalOverlay').style.display = 'none'; // 오버레이 숨기기
     });
 
-    // 삭제 모달의 확인 버튼 클릭 시 키워드 삭제
-    document.getElementById('confirmDelete').addEventListener('click', function() {
-        const idToDelete = this.getAttribute('data-id');
-        document.getElementById('modalOverlay').style.display = 'none'; // 오버레이 숨기기
+// 삭제 모달의 확인 버튼 클릭 시 키워드 삭제
+document.getElementById('confirmDelete').addEventListener('click', function() {
+    const idToDelete = this.getAttribute('data-id');
+    document.getElementById('modalOverlay').style.display = 'none'; // 오버레이 숨기기
 
-        fetch('/user/delete-keyword', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ id: idToDelete }) // id를 서버로 전송
-        })
-        .then(response => response.json())
-        .then(result => {
-            if (result.success) {
-                document.getElementById('deleteModal').style.display = 'none';
-                loadRegisteredSearchTerms(); // 테이블 갱신
-                updateUserInfo(); // 슬롯 및 키워드 수 업데이트
-            } else {
-                alert('키워드 삭제에 실패했습니다: ' + result.error);
-            }
-        })
-        .catch(error => console.error('Error deleting keyword:', error));
-        
-    });
+    fetch('/user/delete-keyword', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id: idToDelete }) // id를 서버로 전송
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            document.getElementById('deleteModal').style.display = 'none';
+            
+            // 테이블을 다시 로드하기 전에 현재 페이지에 남아있는 항목이 없을 경우 이전 페이지로 이동
+            fetch(`/user/get-registered-search-terms?page=${currentPage}&limit=${itemsPerPage}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.items.length === 0 && currentPage > 1) {
+                        currentPage--; // 현재 페이지에서 항목이 없으면 이전 페이지로 이동
+                    }
+                    loadRegisteredSearchTerms(); // 테이블 갱신
+                    updateUserInfo(); // 슬롯 및 키워드 수 업데이트
+                });
+        } else {
+            alert('키워드 삭제에 실패했습니다: ' + result.error);
+        }
+    })
+    .catch(error => console.error('Error deleting keyword:', error));
+});
 
 
     
