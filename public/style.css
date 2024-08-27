@@ -89,7 +89,7 @@ body {
     max-width: 50px; /* 원하는 슬롯 필드 너비로 수정 */
 }
 
-#search-dropdown {
+#search-dropdown,#itemsPerPage {
     max-width: 120px; /* 원하는 드롭다운 너비로 수정 */
 }
 
