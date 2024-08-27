@@ -1,9 +1,4 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const scrollPosition = localStorage.getItem('scrollPosition');
-    if (scrollPosition) {
-        window.scrollTo(0, parseInt(scrollPosition, 10));
-        localStorage.removeItem('scrollPosition');  // 스크롤 후 위치를 삭제
-    }
     // 유저 정보 불러오기
     fetch('/user/user-info')
         .then(response => response.json())

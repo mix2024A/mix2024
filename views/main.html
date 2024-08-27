@@ -35,7 +35,17 @@
             <button id="register-button" class="search-button">등록</button>
         </div>
 
-               <!-- 찾기 기능 추가 -->
+        <!-- 페이지당 표시할 키워드 수 선택 추가 -->
+        <div class="search-container">
+            <label for="itemsPerPage">표시할 개수:</label>
+            <select id="itemsPerPage" class="search-input">
+                <option value="50">50개</option>
+                <option value="100">100개</option>
+                <option value="200">200개</option>
+            </select>
+        </div>
+
+        <!-- 찾기 기능 추가 -->
         <div class="search-container">
             <select id="search-dropdown" class="search-input">
                 <option value="search-term">검색어</option>
@@ -45,8 +55,6 @@
             <input type="text" id="search-input" class="search-input" placeholder="검색어 또는 노출 키워드 입력">
             <button id="search-button" class="search-button">찾기</button>
         </div>
-
-        
 
         <table class="main-account-table">
             <thead>
@@ -61,61 +69,64 @@
                     <th>삭제</th>
                 </tr>
             </thead>
-    <tbody>
-        <!-- 서버에서 가져온 계정 목록이 반복해서 표시됨 -->
-    </tbody>
-</table>
-    
-<!-- 모달 오버레이 요소 추가 -->
-<div id="modalOverlay" class="modal-overlay"></div>
+            <tbody>
+                <!-- 서버에서 가져온 계정 목록이 반복해서 표시됨 -->
+            </tbody>
+        </table>
 
-<!-- 수정 모달 창 -->
-<div id="editModal" class="modal">
-    <div class="modal-content">
-        <h2>키워드 수정</h2>
-
-        <div class="form-group">
-            <label for="edit-search-term">검색어:</label>
-            <input type="text" id="edit-search-term" name="search-term" disabled>
-        </div>
-
-        <div class="form-group">
-            <label for="edit-display-keyword">노출 키워드:</label>
-            <input type="text" id="edit-display-keyword" name="display-keyword" disabled>
-        </div>
-
-        <div class="form-group">
-            <label for="edit-slot">슬롯:</label>
-            <input type="number" id="edit-slot" name="slot">
-        </div>
-
-        <div class="form-group">
-            <label for="edit-note">비고:</label>
-            <input type="text" id="edit-note" name="note">
-        </div>
-
-        <div class="button-container">
-            <button id="saveEdit" class="modal-button save">수정</button>
-            <button id="cancelEdit" class="modal-button cancel">취소</button>
+        <!-- 페이지네이션 -->
+        <div id="pagination" class="pagination">
+            <!-- 페이지 번호 버튼들이 여기에 동적으로 추가될 것입니다. -->
         </div>
     </div>
-</div>
 
+    <!-- 모달 오버레이 요소 추가 -->
+    <div id="modalOverlay" class="modal-overlay"></div>
 
-<!-- 삭제 모달 창 -->
-<div id="deleteModal" class="modal">
-    <div class="modal-content">
-        <h2>키워드 삭제</h2>
-        <p><strong id="delete-keyword"></strong> 키워드를 삭제하시겠습니까?</p>
-        <div class="button-container">
-            <button id="confirmDelete" class="modal-button save">삭제</button>
-            <button id="cancelDelete" class="modal-button cancel">취소</button>
+    <!-- 수정 모달 창 -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h2>키워드 수정</h2>
+
+            <div class="form-group">
+                <label for="edit-search-term">검색어:</label>
+                <input type="text" id="edit-search-term" name="search-term" disabled>
+            </div>
+
+            <div class="form-group">
+                <label for="edit-display-keyword">노출 키워드:</label>
+                <input type="text" id="edit-display-keyword" name="display-keyword" disabled>
+            </div>
+
+            <div class="form-group">
+                <label for="edit-slot">슬롯:</label>
+                <input type="number" id="edit-slot" name="slot">
+            </div>
+
+            <div class="form-group">
+                <label for="edit-note">비고:</label>
+                <input type="text" id="edit-note" name="note">
+            </div>
+
+            <div class="button-container">
+                <button id="saveEdit" class="modal-button save">수정</button>
+                <button id="cancelEdit" class="modal-button cancel">취소</button>
+            </div>
         </div>
     </div>
-</div>
 
+    <!-- 삭제 모달 창 -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <h2>키워드 삭제</h2>
+            <p><strong id="delete-keyword"></strong> 키워드를 삭제하시겠습니까?</p>
+            <div class="button-container">
+                <button id="confirmDelete" class="modal-button save">삭제</button>
+                <button id="cancelDelete" class="modal-button cancel">취소</button>
+            </div>
+        </div>
+    </div>
 
     <script src="/js/main.js"></script> <!-- main.js 로드 -->
-    </body>
-    </html>
-    
+</body>
+</html>
