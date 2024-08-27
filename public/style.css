@@ -503,3 +503,14 @@ input[type="number"]::-webkit-outer-spin-button {
     display: none; /* 기본적으로 숨김 */
 }
 
+.page-number {
+    cursor: pointer;
+    margin: 0 5px;
+    padding: 5px;
+    font-size: 16px;
+}
+
+.page-number.active {
+    font-weight: bold;
+    color: red; /* 현재 페이지 강조 */
+}
