@@ -427,9 +427,8 @@ exports.editChargeHistory = (req, res) => {
     });
 };
 
-// 만료된 슬롯 비활성화 및 차감 후 삭제 예정 날짜 설정 함수 추가
 exports.handleExpiredSlots = () => {
-    // 1. 만료된 슬롯의 사용자 슬롯을 먼저 차감합니다.
+    // 1. 만료된 슬롯의 사용자 슬롯을 먼저 차감합니다. 단, isSlotActive가 1인 경우에만 차감.
     const updateUserSlotsQuery = `
     UPDATE users u
     JOIN (
@@ -442,7 +441,7 @@ exports.handleExpiredSlots = () => {
         u.slot = GREATEST(0, u.slot - IFNULL(ch.expiredSlotAmount, 0)),
         u.remainingSlots = GREATEST(0, u.remainingSlots - IFNULL(ch.expiredSlotAmount, 0)),
         u.editCount = GREATEST(0, u.editCount - IFNULL(ch.expiredSlotAmount, 0))
-    WHERE ch.expiredSlotAmount > 0;
+    WHERE ch.expiredSlotAmount > 0 AND u.isSlotActive = 1;
     `;
 
     connection.query(updateUserSlotsQuery, (err, results) => {
