@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // 페이지가 로드된 후 스크롤 위치 복원 (수정 완료 시에만)
     const scrollPosition = sessionStorage.getItem('scrollPosition');
+    console.log("Scroll position retrieved:", scrollPosition);  // 이 줄을 통해 확인
     if (scrollPosition !== null) {
         window.scrollTo(0, parseInt(scrollPosition, 10));
         sessionStorage.removeItem('scrollPosition'); // 위치 복원 후 삭제
@@ -228,6 +229,7 @@ function setupPagination(totalItems) {
         if (event.target.classList.contains('account-edit-button')) {
             // 수정 버튼 클릭 시 스크롤 위치 저장
             sessionStorage.setItem('scrollPosition', window.scrollY);
+            console.log("Scroll position saved:", window.scrollY); // 이 줄을 추가하여 로그 확인
 
             const row = event.target.closest('tr');
             const id = row.getAttribute('data-id');
