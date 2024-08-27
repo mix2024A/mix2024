@@ -263,7 +263,6 @@ function setupPagination(totalItems) {
         }
     });
 
- // 수정 모달의 저장 버튼 클릭 시
 // 수정 모달의 저장 버튼 클릭 시
 document.getElementById('saveEdit').addEventListener('click', function() {
     const idToEdit = document.getElementById('editModal').getAttribute('data-id');
@@ -298,6 +297,9 @@ document.getElementById('saveEdit').addEventListener('click', function() {
             row.querySelector('td:nth-child(4)').textContent = slot;
             row.querySelector('td:nth-child(6)').textContent = note;
 
+            // 잔여 슬롯 및 기타 정보 업데이트
+            updateUserInfo();
+
             // 모달 닫기
             document.getElementById('editModal').style.display = 'none';
             document.getElementById('modalOverlay').style.display = 'none';
@@ -307,7 +309,6 @@ document.getElementById('saveEdit').addEventListener('click', function() {
     })
     .catch(error => console.error('Error editing keyword:', error));
 });
-
 
 
 
