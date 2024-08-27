@@ -125,22 +125,32 @@ exports.deleteAccount = (req, res) => {
             return res.status(500).send('Failed to delete charge history.');
         }
 
-        // 이후 유저 계정을 삭제
-        const deleteUserQuery = 'DELETE FROM users WHERE username = ?';
-        connection.query(deleteUserQuery, [username], (err, results) => {
+        // 유저가 등록한 키워드 삭제
+        const deleteKeywordsQuery = 'DELETE FROM user_keywords WHERE username = ?';
+        connection.query(deleteKeywordsQuery, [username], (err, results) => {
             if (err) {
-                console.error('Failed to delete account:', err);
-                return res.status(500).send('Failed to delete account.');
+                console.error('Failed to delete keywords:', err);
+                return res.status(500).send('Failed to delete keywords.');
             }
 
-            if (results.affectedRows > 0) {
-                res.sendStatus(200); // 유저 계정이 성공적으로 삭제된 경우
-            } else {
-                res.status(404).send('User account not found.'); // 유저 계정이 없는 경우
-            }
+            // 이후 유저 계정을 삭제
+            const deleteUserQuery = 'DELETE FROM users WHERE username = ?';
+            connection.query(deleteUserQuery, [username], (err, results) => {
+                if (err) {
+                    console.error('Failed to delete account:', err);
+                    return res.status(500).send('Failed to delete account.');
+                }
+
+                if (results.affectedRows > 0) {
+                    res.sendStatus(200); // 유저 계정이 성공적으로 삭제된 경우
+                } else {
+                    res.status(404).send('User account not found.'); // 유저 계정이 없는 경우
+                }
+            });
         });
     });
 };
+
 
 // 슬롯 수정 함수
 exports.editSlot = (req, res) => {
