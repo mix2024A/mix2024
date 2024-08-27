@@ -1,11 +1,12 @@
 document.addEventListener("DOMContentLoaded", function () {
+    console.log("Page fully loaded and DOM is ready");
 
     let currentPage = 1;
     let itemsPerPage = 50; // 기본값은 50개로 설정
 
     // 페이지가 로드된 후 스크롤 위치 복원 (수정 완료 시에만)
     const scrollPosition = sessionStorage.getItem('scrollPosition');
-    console.log("Scroll position retrieved:", scrollPosition);  // 이 줄을 통해 확인
+    console.log("Scroll position retrieved:", scrollPosition);  // 스크롤 위치 복원 전에 위치 출력
     if (scrollPosition !== null) {
         window.scrollTo(0, parseInt(scrollPosition, 10));
         sessionStorage.removeItem('scrollPosition'); // 위치 복원 후 삭제
