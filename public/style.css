@@ -184,7 +184,7 @@ body {
 .main-account-table td {
     color: #666;
     font-size: 13px; /* 원하는 글씨 크기로 설정 */
-    padding: 5px;
+    padding: 6px;
     overflow: hidden; /* 넘친 부분을 숨김 */
     text-overflow: ellipsis; /* 넘친 부분을 ... 으로 표시 */
 }
