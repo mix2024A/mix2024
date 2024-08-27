@@ -159,26 +159,29 @@ document.addEventListener("DOMContentLoaded", function () {
             .catch(error => console.error('Error loading registered search terms:', error));
     }
     
-    // 페이지네이션 설정 함수
-    function setupPagination(totalItems) {
-        const totalPages = Math.ceil(totalItems / itemsPerPage);
-        const paginationContainer = document.getElementById('pagination');
-        paginationContainer.innerHTML = '';
+// 페이지네이션 설정 함수
+function setupPagination(totalItems) {
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const paginationContainer = document.getElementById('pagination');
+    paginationContainer.innerHTML = '';
 
-        for (let i = 1; i <= totalPages; i++) {
-            const pageButton = document.createElement('button');
-            pageButton.textContent = i;
-            pageButton.classList.add('page-button');
-            if (i === currentPage) {
-                pageButton.classList.add('active');
-            }
-            pageButton.addEventListener('click', function () {
-                currentPage = i;
-                loadRegisteredSearchTerms();
-            });
-            paginationContainer.appendChild(pageButton);
+    for (let i = 1; i <= totalPages; i++) {
+        const pageButton = document.createElement('span');
+        pageButton.textContent = i;
+        pageButton.classList.add('page-number');
+        if (i === currentPage) {
+            pageButton.classList.add('active');
         }
+
+        pageButton.addEventListener('click', function () {
+            currentPage = i;
+            loadRegisteredSearchTerms();
+        });
+
+        paginationContainer.appendChild(pageButton);
     }
+}
+
 
 
     // 드롭다운 필터링 기능 추가
