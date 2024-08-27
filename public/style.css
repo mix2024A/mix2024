@@ -516,7 +516,7 @@ input[type="number"]::-webkit-outer-spin-button {
 
 .page-number.active {
     font-weight: bold;
-    background-color: #3b49df; /* 활성화된 페이지도 동일한 색상 */
+    background-color: #8BC34A; /* 활성화된 페이지도 동일한 색상 */
     color: white;
 }
 
