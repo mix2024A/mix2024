@@ -450,27 +450,45 @@ exports.handleExpiredSlots = () => {
         } else {
             console.log('User slots updated:', results.affectedRows);
 
-            // 키워드 삭제 로직 추가
-            const keywordDeleteQuery = `
-            DELETE FROM registrations
-            WHERE username IN (
-                SELECT username
-                FROM users
-                WHERE remainingSlots < (
-                    SELECT COUNT(*)
-                    FROM registrations
-                    WHERE registrations.username = users.username
-                )
+            // 키워드 삭제 로직 수정
+            const tempTableQuery = `
+            CREATE TEMPORARY TABLE temp_registrations_to_delete AS
+            SELECT r.id
+            FROM registrations r
+            JOIN users u ON r.username = u.username
+            WHERE u.remainingSlots < (
+                SELECT COUNT(*)
+                FROM registrations
+                WHERE username = r.username
             )
-            ORDER BY created_at ASC
+            ORDER BY r.created_at ASC
             LIMIT ?;
             `;
 
-            connection.query(keywordDeleteQuery, [Math.abs(results.affectedRows)], (err, deleteResults) => {
+            connection.query(tempTableQuery, [Math.abs(results.affectedRows)], (err, tempResults) => {
                 if (err) {
-                    console.error('Failed to delete keywords:', err);
+                    console.error('Failed to create temporary table:', err);
                 } else {
-                    console.log('Keywords deleted:', deleteResults.affectedRows);
+                    const deleteQuery = `
+                    DELETE r FROM registrations r
+                    JOIN temp_registrations_to_delete t ON r.id = t.id;
+                    `;
+
+                    connection.query(deleteQuery, (err, deleteResults) => {
+                        if (err) {
+                            console.error('Failed to delete keywords:', err);
+                        } else {
+                            console.log('Keywords deleted:', deleteResults.affectedRows);
+                        }
+
+                        // 이제 임시 테이블을 삭제
+                        const dropTempTableQuery = `DROP TEMPORARY TABLE IF EXISTS temp_registrations_to_delete;`;
+                        connection.query(dropTempTableQuery, (err) => {
+                            if (err) {
+                                console.error('Failed to drop temporary table:', err);
+                            }
+                        });
+                    });
                 }
             });
         }
