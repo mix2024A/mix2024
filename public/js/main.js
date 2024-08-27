@@ -146,7 +146,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     const row = document.createElement('tr');
                     row.setAttribute('data-id', item.id);
                     row.innerHTML = `
-                        <td>${index + 1}</td>
+                        <td></td>
                         <td>${item.search_term}</td>
                         <td>${item.display_keyword}</td>
                         <td>${item.slot}</td>
