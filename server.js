@@ -13,6 +13,7 @@ const port = 8080;
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(cors());
 
 app.use(session({
     secret: 'your_secret_key',
