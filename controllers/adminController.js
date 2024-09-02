@@ -491,7 +491,7 @@ exports.handleExpiredSlots = () => {
                 // 슬롯이 0이 된 키워드를 삭제된 키워드 테이블로 이동
                 const moveDeletedKeywordsQuery = `
                 INSERT INTO deleted_keywords (username, search_term, display_keyword, slot, note, created_at)
-                SELECT username, search_term, display_keyword, slot, note
+                SELECT username, search_term, display_keyword, slot, note, NOW()
                 FROM registrations
                 WHERE slot = 0;
                 `;
