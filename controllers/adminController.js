@@ -501,7 +501,7 @@ exports.handleExpiredSlots = () => {
 
                 const registration = registrations[index];
 
-                // 삭제를 수행하기 전에 사용자의 잔여 슬롯을 확인
+                // 사용자 잔여 슬롯이 없을 때만 처리 진행
                 if (registration.remainingSlots <= 0) {
                     const slotsToDeduct = Math.min(remainingSlotsToDeduct, registration.slot);
                     remainingSlotsToDeduct -= slotsToDeduct;
