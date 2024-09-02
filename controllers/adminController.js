@@ -487,63 +487,70 @@ exports.handleExpiredSlots = () => {
                 } else {
                     let remainingSlotsToDeduct = results.affectedRows;
 
-                    registrations.forEach(registration => {
-                        if (remainingSlotsToDeduct > 0) {
-                            const slotsToDeduct = Math.min(remainingSlotsToDeduct, registration.slot);
-                            remainingSlotsToDeduct -= slotsToDeduct;
+                    // 각 등록된 키워드에 대해 슬롯을 차감하며 처리
+                    processNextRegistration(0);
 
-                            if (slotsToDeduct === registration.slot) {
-                                // 슬롯이 모두 만료된 경우 삭제
-                                const moveDeletedKeywordsQuery = `
-                                INSERT INTO deleted_keywords (username, search_term, display_keyword, slot, note, created_at, deleted_at)
-                                VALUES (?, ?, ?, ?, ?, ?, NOW());
-                                `;
-
-                                connection.query(moveDeletedKeywordsQuery, [
-                                    registration.username, 
-                                    registration.search_term, 
-                                    registration.display_keyword, 
-                                    registration.slot, 
-                                    registration.note, 
-                                    registration.created_at
-                                ], (err) => {
-                                    if (err) {
-                                        console.error('Failed to move deleted keywords:', err);
-                                    } else {
-                                        console.log('Deleted keywords moved for registration ID:', registration.id);
-
-                                        const deleteRegistrationQuery = `
-                                        DELETE FROM registrations WHERE id = ?;
-                                        `;
-
-                                        connection.query(deleteRegistrationQuery, [registration.id], (err) => {
-                                            if (err) {
-                                                console.error('Failed to delete registration:', err);
-                                            } else {
-                                                console.log('Registration deleted with ID:', registration.id);
-                                            }
-                                        });
-                                    }
-                                });
-                            } else {
-                                // 일부 슬롯만 만료된 경우, 남은 슬롯 수만큼 업데이트
-                                const updateRegistrationQuery = `
-                                UPDATE registrations SET slot = slot - ? WHERE id = ?;
-                                `;
-
-                                connection.query(updateRegistrationQuery, [slotsToDeduct, registration.id], (err) => {
-                                    if (err) {
-                                        console.error('Failed to update registration slot:', err);
-                                    } else {
-                                        console.log('Registration updated with ID:', registration.id);
-                                    }
-                                });
+                    function processNextRegistration(index) {
+                        if (index >= registrations.length || remainingSlotsToDeduct <= 0) {
+                            if (remainingSlotsToDeduct > 0) {
+                                console.log('Slots left to deduct after processing all registrations:', remainingSlotsToDeduct);
                             }
+                            return;
                         }
-                    });
 
-                    if (remainingSlotsToDeduct > 0) {
-                        console.log('Slots left to deduct after processing all registrations:', remainingSlotsToDeduct);
+                        const registration = registrations[index];
+                        const slotsToDeduct = Math.min(remainingSlotsToDeduct, registration.slot);
+                        remainingSlotsToDeduct -= slotsToDeduct;
+
+                        if (slotsToDeduct === registration.slot) {
+                            // 슬롯이 모두 만료된 경우 삭제
+                            const moveDeletedKeywordsQuery = `
+                            INSERT INTO deleted_keywords (username, search_term, display_keyword, slot, note, created_at, deleted_at)
+                            VALUES (?, ?, ?, ?, ?, ?, NOW());
+                            `;
+
+                            connection.query(moveDeletedKeywordsQuery, [
+                                registration.username, 
+                                registration.search_term, 
+                                registration.display_keyword, 
+                                registration.slot, 
+                                registration.note, 
+                                registration.created_at
+                            ], (err) => {
+                                if (err) {
+                                    console.error('Failed to move deleted keywords:', err);
+                                } else {
+                                    console.log('Deleted keywords moved for registration ID:', registration.id);
+
+                                    const deleteRegistrationQuery = `
+                                    DELETE FROM registrations WHERE id = ?;
+                                    `;
+
+                                    connection.query(deleteRegistrationQuery, [registration.id], (err) => {
+                                        if (err) {
+                                            console.error('Failed to delete registration:', err);
+                                        } else {
+                                            console.log('Registration deleted with ID:', registration.id);
+                                            processNextRegistration(index + 1); // 다음 등록된 키워드로 진행
+                                        }
+                                    });
+                                }
+                            });
+                        } else {
+                            // 일부 슬롯만 만료된 경우, 남은 슬롯 수만큼 업데이트
+                            const updateRegistrationQuery = `
+                            UPDATE registrations SET slot = slot - ? WHERE id = ?;
+                            `;
+
+                            connection.query(updateRegistrationQuery, [slotsToDeduct, registration.id], (err) => {
+                                if (err) {
+                                    console.error('Failed to update registration slot:', err);
+                                } else {
+                                    console.log('Registration updated with ID:', registration.id);
+                                    processNextRegistration(index + 1); // 다음 등록된 키워드로 진행
+                                }
+                            });
+                        }
                     }
                 }
             });
