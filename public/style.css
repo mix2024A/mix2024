@@ -305,7 +305,7 @@ button:hover {
 /* 관리자 전용 버튼 스타일 */
 .account-edit-button, .account-delete-button, .account-charge-button {
     width: auto;
-    padding: 3px 7px;
+    padding: 0px 7px;
     border: none;
     cursor: pointer;
     border-radius: 4px;
