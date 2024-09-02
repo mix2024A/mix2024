@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
 
-
+    let previousRankings = {};  // 이전 순위 상태를 저장할 객체
     let currentPage = 1;
     let itemsPerPage = 50; // 기본값은 50개로 설정
 
@@ -134,6 +134,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 const tableBody = document.querySelector('tbody');
                 tableBody.innerHTML = ''; 
     
+                previousRankings = {};  // 이전 순위 상태 초기화
+    
                 data.items.forEach((item, index) => {
                     const date = new Date(item.created_at);
                     const formattedDate = date.toISOString().split('T')[0];
@@ -141,7 +143,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     const row = document.createElement('tr');
                     row.setAttribute('data-id', item.id);
                     row.innerHTML = `
-                        <td></td>
+                        <td>-</td> <!-- 순위 셀 초기화 -->
                         <td>${item.search_term}</td>
                         <td>${item.display_keyword}</td>
                         <td>${item.slot}</td>
@@ -151,13 +153,58 @@ document.addEventListener("DOMContentLoaded", function () {
                         <td><button class="account-delete-button">삭제</button></td>
                     `;
                     tableBody.appendChild(row);
+    
+                    // 순위 상태 저장 초기화
+                    previousRankings[item.display_keyword] = null;
                 });
     
                 setupPagination(data.totalItems);
+    
+                // 테이블이 로드된 후에 순위를 업데이트합니다.
+                updateKeywordRankings();
             })
             .catch(error => console.error('Error loading registered search terms:', error));
     }
     
+    
+// 순위를 업데이트하는 함수
+async function updateKeywordRankings() {
+    const rows = document.querySelectorAll('.main-account-table tbody tr');
+
+    for (const row of rows) {
+        const displayKeyword = row.querySelector('td:nth-child(3)').textContent;
+        const rankCell = row.querySelector('td:nth-child(1)');
+
+        try {
+            const response = await fetch(`https://mac.search.naver.com/mobile/ac?q="${displayKeyword}"&st=1`);
+            const data = await response.json();
+
+            let newRank = null;
+            if (data.items.some(item => item.keyword === displayKeyword)) {
+                newRank = data.items.findIndex(item => item.keyword === displayKeyword) + 1;
+                rankCell.textContent = newRank;
+                rankCell.style.color = ''; // 기본 색상으로 설정
+            } else {
+                rankCell.textContent = '-';
+            }
+
+            // 이전 순위가 있었는데 현재 순위가 없는 경우 "누락"으로 표시
+            if (previousRankings[displayKeyword] && newRank === null) {
+                rankCell.textContent = '누락';
+                rankCell.style.color = 'red'; // "누락" 시 빨간색으로 표시
+            }
+
+            // 현재 순위를 저장하여 다음 업데이트 시 비교할 수 있도록 합니다.
+            previousRankings[displayKeyword] = newRank;
+
+        } catch (error) {
+            console.error('Error fetching ranking:', error);
+            rankCell.textContent = '-';
+        }
+    }
+}
+
+
 // 페이지네이션 설정 함수
 function setupPagination(totalItems) {
     const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -380,4 +427,8 @@ document.getElementById('confirmDelete').addEventListener('click', function() {
 
     // 페이지 로드 시 테이블에 등록된 검색어 표시
     loadRegisteredSearchTerms();
+
+    // 일정 주기마다 순위를 갱신
+    setInterval(updateKeywordRankings, 60000); // 1분마다 순위 갱신
 });
+

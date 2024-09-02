@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt');
 const connection = require('../config/database');
+const axios = require('axios');
 
 // 관리자 정보 제공
 exports.getAdminInfo = (req, res) => {
@@ -505,4 +506,23 @@ exports.handleExpiredSlots = () => {
             });
         });
     });
+};
+
+//자동완성 순위 로직
+exports.getKeywordRank = async (req, res) => {
+    const { searchTerm, displayKeyword } = req.body;
+
+    try {
+        const response = await axios.get(`https://mac.search.naver.com/mobile/ac?q=${searchTerm}&st=1`);
+        const results = response.data;
+        // 여기에 결과에서 displayKeyword의 순위를 찾는 로직을 추가
+        
+        let rank = results.findIndex(item => item === displayKeyword) + 1;
+        if (rank === 0) rank = '순위 없음';
+
+        res.json({ rank });
+    } catch (error) {
+        console.error('Failed to fetch keyword rank:', error);
+        res.status(500).json({ error: 'Failed to fetch keyword rank' });
+    }
 };
