@@ -467,101 +467,12 @@ exports.handleExpiredSlots = () => {
     WHERE ch.expiredSlotAmount > 0;
     `;
 
-    connection.query(updateAndDeactivateSlotsQuery, (err, userSlotResults) => {
+    connection.query(updateAndDeactivateSlotsQuery, (err, results) => {
         if (err) {
             console.error('Failed to update user slots:', err);
-            return;
+        } else {
+            console.log('User slots updated:', results.affectedRows);
         }
-        console.log('User slots updated:', userSlotResults.affectedRows);
-
-        // 등록된 키워드를 오래된 순서대로 가져와 슬롯 차감 및 삭제
-        const fetchRegistrationsQuery = `
-        SELECT r.id, r.username, r.search_term, r.display_keyword, r.slot, r.note, r.created_at, u.remainingSlots
-        FROM registrations r
-        JOIN users u ON r.username = u.username
-        ORDER BY r.created_at ASC;
-        `;
-
-        connection.query(fetchRegistrationsQuery, (err, registrations) => {
-            if (err) {
-                console.error('Failed to fetch registrations for slot adjustment:', err);
-                return;
-            }
-
-            let remainingSlotsToDeduct = userSlotResults.affectedRows;
-
-            // 각 등록된 키워드에 대해 슬롯을 차감하며 처리
-            processNextRegistration(0);
-
-            function processNextRegistration(index) {
-                if (index >= registrations.length || remainingSlotsToDeduct <= 0) {
-                    console.log('Finished processing registrations.');
-                    return;
-                }
-
-                const registration = registrations[index];
-
-                // 사용자 잔여 슬롯이 없을 때만 처리 진행
-                if (registration.remainingSlots <= 0) {
-                    const slotsToDeduct = Math.min(remainingSlotsToDeduct, registration.slot);
-                    remainingSlotsToDeduct -= slotsToDeduct;
-
-                    if (slotsToDeduct === registration.slot) {
-                        // 슬롯이 모두 만료된 경우 삭제
-                        const moveDeletedKeywordsQuery = `
-                        INSERT INTO deleted_keywords (username, search_term, display_keyword, slot, note, created_at, deleted_at)
-                        VALUES (?, ?, ?, ?, ?, ?, NOW());
-                        `;
-
-                        connection.query(moveDeletedKeywordsQuery, [
-                            registration.username,
-                            registration.search_term,
-                            registration.display_keyword,
-                            registration.slot,
-                            registration.note,
-                            registration.created_at
-                        ], (err) => {
-                            if (err) {
-                                console.error('Failed to move deleted keywords:', err);
-                            } else {
-                                console.log('Deleted keywords moved for registration ID:', registration.id);
-
-                                const deleteRegistrationQuery = `
-                                DELETE FROM registrations WHERE id = ?;
-                                `;
-
-                                connection.query(deleteRegistrationQuery, [registration.id], (err) => {
-                                    if (err) {
-                                        console.error('Failed to delete registration:', err);
-                                    } else {
-                                        console.log('Registration deleted with ID:', registration.id);
-                                        processNextRegistration(index + 1); // 다음 등록된 키워드로 진행
-                                    }
-                                });
-                            }
-                        });
-                    } else {
-                        // 일부 슬롯만 만료된 경우, 남은 슬롯 수만큼 업데이트
-                        const updateRegistrationQuery = `
-                        UPDATE registrations SET slot = slot - ? WHERE id = ?;
-                        `;
-
-                        connection.query(updateRegistrationQuery, [slotsToDeduct, registration.id], (err) => {
-                            if (err) {
-                                console.error('Failed to update registration slot:', err);
-                            } else {
-                                console.log('Registration updated with ID:', registration.id);
-                                processNextRegistration(index + 1); // 다음 등록된 키워드로 진행
-                            }
-                        });
-                    }
-                } else {
-                    // 잔여 슬롯이 충분한 경우, 키워드를 삭제하지 않음
-                    console.log(`Skipping registration ID ${registration.id} due to sufficient remaining slots.`);
-                    processNextRegistration(index + 1);
-                }
-            }
-        });
 
         // 만료된 슬롯의 deletion_date와 isSlotActive를 업데이트합니다.
         const updateExpiredQuery = `
@@ -577,21 +488,21 @@ exports.handleExpiredSlots = () => {
                 console.error('Failed to update expired charge history:', err);
             } else {
                 console.log('Expired charge history marked for deletion and deactivated:', results.affectedRows);
-
-                // 삭제 예정인 슬롯 삭제
-                const deleteQuery = `
-                DELETE FROM charge_history 
-                WHERE deletion_date <= CURDATE() AND deletion_date IS NOT NULL;
-                `;
-
-                connection.query(deleteQuery, (err, results) => {
-                    if (err) {
-                        console.error('Failed to delete charge history:', err);
-                    } else {
-                        console.log('Charge history deleted:', results.affectedRows);
-                    }
-                });
             }
+
+            // 삭제 예정인 슬롯 삭제
+            const deleteQuery = `
+            DELETE FROM charge_history 
+            WHERE deletion_date <= CURDATE() AND deletion_date IS NOT NULL;
+            `;
+
+            connection.query(deleteQuery, (err, results) => {
+                if (err) {
+                    console.error('Failed to delete charge history:', err);
+                } else {
+                    console.log('Charge history deleted:', results.affectedRows);
+                }
+            });
         });
     });
 };
