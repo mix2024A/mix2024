@@ -85,7 +85,7 @@ exports.getUserChargeHistory = (req, res) => {
             END AS status
             FROM charge_history 
             WHERE username = ?
-            ORDER BY charge_date DESC
+            ORDER BY charge_date DESC;
         `;
 
         connection.query(query, [req.session.user], (err, results) => {
