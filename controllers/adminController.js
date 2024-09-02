@@ -362,7 +362,7 @@ exports.extendChargeHistory = (req, res) => {
             if (expiryDate < currentDate) { // 만료된 경우
                 const extendQuery = `
                     UPDATE charge_history
-                    SET expiry_date = DATE_ADD(expiry_date, INTERVAL 30 DAY), deletion_date = NULL
+                    SET expiry_date = DATE_ADD(expiry_date, INTERVAL 30 DAY), deletion_date = NULL, isSlotActive = 1
                     WHERE id = ?
                 `;
 
@@ -375,7 +375,7 @@ exports.extendChargeHistory = (req, res) => {
                     if (results.affectedRows > 0) {
                         const increaseSlotsQuery = `
                             UPDATE users
-                            SET slot = slot + ?, remainingSlots = remainingSlots + ?, editCount = editCount + ?, isSlotActive = 1
+                            SET slot = slot + ?, remainingSlots = remainingSlots + ?, editCount = editCount + ?
                             WHERE username = ?
                         `;
 
@@ -396,7 +396,7 @@ exports.extendChargeHistory = (req, res) => {
                 // 만료되지 않은 슬롯도 30일 연장
                 const extendOnlyQuery = `
                     UPDATE charge_history
-                    SET expiry_date = DATE_ADD(expiry_date, INTERVAL 30 DAY), deletion_date = NULL
+                    SET expiry_date = DATE_ADD(expiry_date, INTERVAL 30 DAY), deletion_date = NULL, isSlotActive = 1
                     WHERE id = ?
                 `;
 
@@ -418,6 +418,7 @@ exports.extendChargeHistory = (req, res) => {
         }
     });
 };
+
 
 
 // 충전 내역 수정 함수
