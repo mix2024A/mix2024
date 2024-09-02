@@ -391,6 +391,13 @@ document.querySelector('.main-account-table').addEventListener('click', function
     }
 });
 
+// 삭제 모달의 취소 버튼 클릭 시 모달 창 닫기
+document.getElementById('cancelDelete').addEventListener('click', function() {
+    document.getElementById('deleteModal').style.display = 'none';
+    document.getElementById('modalOverlay').style.display = 'none';
+});
+
+
 // 삭제 모달의 확인 버튼 클릭 시 키워드 삭제
 document.getElementById('confirmDelete').addEventListener('click', function() {
     const idToDelete = this.getAttribute('data-id');
@@ -434,6 +441,8 @@ document.getElementById('confirmDelete').addEventListener('click', function() {
         })
         .catch(error => console.error('Error checking edit count before deletion:', error));
 });
+
+
 
     // 페이지 로드 시 테이블에 등록된 검색어 표시
     loadRegisteredSearchTerms();
