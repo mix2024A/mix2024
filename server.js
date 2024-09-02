@@ -5,6 +5,7 @@ const path = require('path');
 const cron = require('node-cron');
 const adminController = require('./controllers/adminController');  // 경로가 정확해야 합니다.
 const userController = require('./controllers/userController');
+const axios = require('axios');
 
 
 const app = express();
@@ -28,6 +29,24 @@ app.use('/', require('./routes/authRoutes'));
 app.use('/user', require('./routes/userRoutes'));
 app.use('/admin', require('./routes/adminRoutes'));
 
+
+// 프록시 라우트 추가
+app.get('/proxy', async (req, res) => {
+    const { q, st } = req.query;  // 클라이언트로부터 쿼리 파라미터를 받습니다.
+    try {
+        // 네이버 API에 요청을 보냅니다.
+        const response = await axios.get(`https://mac.search.naver.com/mobile/ac`, {
+            params: { q: q, st: st }
+        });
+        // 네이버 API로부터 받은 응답을 클라이언트에 전달합니다.
+        res.json(response.data);
+    } catch (error) {
+        console.error('Error fetching data from Naver API:', error);
+        res.status(500).send('Error fetching data from Naver API');
+    }
+});
+
+
 // HTML 파일 라우트
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'login.html'));
@@ -41,6 +60,8 @@ app.get('/main', (req, res) => {
         res.redirect('/'); // 로그인하지 않은 경우 로그인 페이지로 리디렉션
     }
 });
+
+
 
 // /user-charge-history 경로 라우트 추가
 app.get('/user-charge-history', (req, res) => {

@@ -176,7 +176,8 @@ async function updateKeywordRankings() {
         const rankCell = row.querySelector('td:nth-child(1)');
 
         try {
-            const response = await fetch(`https://mac.search.naver.com/mobile/ac?q=${displayKeyword}&st=1`);
+            // 클라이언트에서 서버의 프록시 라우트로 요청을 보냅니다.
+            const response = await fetch(`/proxy?q="${displayKeyword}"&st=1`);
             const data = await response.json();
 
             let newRank = null;
@@ -203,6 +204,7 @@ async function updateKeywordRankings() {
         }
     }
 }
+
 
 
 // 페이지네이션 설정 함수
