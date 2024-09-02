@@ -473,6 +473,51 @@ exports.handleExpiredSlots = () => {
             console.log('User slots updated:', results.affectedRows);
         }
 
+        // 남은 슬롯이 0 이하인 사용자의 등록된 키워드에서 슬롯 차감
+        const updateRegistrationsQuery = `
+        UPDATE registrations r
+        JOIN users u ON r.username = u.username
+        SET r.slot = GREATEST(0, r.slot - ?)
+        WHERE u.remainingSlots = 0 AND r.slot > 0;
+        `;
+
+        connection.query(updateRegistrationsQuery, [results.affectedRows], (err, results) => {
+            if (err) {
+                console.error('Failed to update registrations:', err);
+            } else {
+                console.log('Registrations updated:', results.affectedRows);
+
+                // 슬롯이 0이 된 키워드를 삭제된 키워드 테이블로 이동
+                const moveDeletedKeywordsQuery = `
+                INSERT INTO deleted_keywords (username, search_term, display_keyword, slot, note)
+                SELECT username, search_term, display_keyword, slot, note
+                FROM registrations
+                WHERE slot = 0;
+                `;
+
+                connection.query(moveDeletedKeywordsQuery, (err, results) => {
+                    if (err) {
+                        console.error('Failed to move deleted keywords:', err);
+                    } else {
+                        console.log('Deleted keywords moved:', results.affectedRows);
+
+                        // 슬롯이 0인 등록된 키워드 삭제
+                        const deleteEmptyRegistrationsQuery = `
+                        DELETE FROM registrations WHERE slot = 0;
+                        `;
+
+                        connection.query(deleteEmptyRegistrationsQuery, (err, results) => {
+                            if (err) {
+                                console.error('Failed to delete empty registrations:', err);
+                            } else {
+                                console.log('Empty registrations deleted:', results.affectedRows);
+                            }
+                        });
+                    }
+                });
+            }
+        });
+
         // 만료된 슬롯의 deletion_date와 isSlotActive를 업데이트합니다.
         const updateExpiredQuery = `
             UPDATE charge_history 
@@ -487,21 +532,22 @@ exports.handleExpiredSlots = () => {
                 console.error('Failed to update expired charge history:', err);
             } else {
                 console.log('Expired charge history marked for deletion and deactivated:', results.affectedRows);
+
+                // 삭제 예정인 슬롯 삭제
+                const deleteQuery = `
+                DELETE FROM charge_history 
+                WHERE deletion_date <= CURDATE() AND deletion_date IS NOT NULL;
+                `;
+
+                connection.query(deleteQuery, (err, results) => {
+                    if (err) {
+                        console.error('Failed to delete charge history:', err);
+                    } else {
+                        console.log('Charge history deleted:', results.affectedRows);
+                    }
+                });
             }
-
-            // 삭제 예정인 슬롯 삭제
-            const deleteQuery = `
-            DELETE FROM charge_history 
-            WHERE deletion_date <= CURDATE() AND deletion_date IS NOT NULL;
-            `;
-
-            connection.query(deleteQuery, (err, results) => {
-                if (err) {
-                    console.error('Failed to delete charge history:', err);
-                } else {
-                    console.log('Charge history deleted:', results.affectedRows);
-                }
-            });
         });
     });
 };
+
