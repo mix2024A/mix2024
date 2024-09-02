@@ -309,7 +309,7 @@ button:hover {
     border: none;
     cursor: pointer;
     border-radius: 4px;
-    font-size: 13px;
+    font-size: 12px;
 }
 
 .account-delete-button {
