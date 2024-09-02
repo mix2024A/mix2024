@@ -492,19 +492,19 @@ exports.handleExpiredSlots = () => {
                             const slotsToDeduct = Math.min(remainingSlotsToDeduct, registration.slot);
                             remainingSlotsToDeduct -= slotsToDeduct;
 
-                            const moveDeletedKeywordsQuery = `
-                            INSERT INTO deleted_keywords (username, search_term, display_keyword, slot, note, created_at, deleted_at)
-                            VALUES (?, ?, ?, ?, ?, ?, NOW());
-                            `;
+                            if (slotsToDeduct === registration.slot) {
+                                // 슬롯이 모두 만료된 경우 삭제
+                                const moveDeletedKeywordsQuery = `
+                                INSERT INTO deleted_keywords (username, search_term, display_keyword, slot, note, created_at, deleted_at)
+                                VALUES (?, ?, ?, ?, ?, ?, NOW());
+                                `;
 
-                            connection.query(moveDeletedKeywordsQuery, [registration.username, registration.search_term, registration.display_keyword, slotsToDeduct, registration.note, registration.created_at], (err) => {
-                                if (err) {
-                                    console.error('Failed to move deleted keywords:', err);
-                                } else {
-                                    console.log('Deleted keywords moved for registration ID:', registration.id);
+                                connection.query(moveDeletedKeywordsQuery, [registration.username, registration.search_term, registration.display_keyword, slotsToDeduct, registration.note, registration.created_at], (err) => {
+                                    if (err) {
+                                        console.error('Failed to move deleted keywords:', err);
+                                    } else {
+                                        console.log('Deleted keywords moved for registration ID:', registration.id);
 
-                                    if (slotsToDeduct === registration.slot) {
-                                        // 모든 슬롯이 만료된 경우, 등록된 키워드를 삭제
                                         const deleteRegistrationQuery = `
                                         DELETE FROM registrations WHERE id = ?;
                                         `;
@@ -516,22 +516,22 @@ exports.handleExpiredSlots = () => {
                                                 console.log('Registration deleted with ID:', registration.id);
                                             }
                                         });
-                                    } else {
-                                        // 일부 슬롯만 만료된 경우, 슬롯 수 업데이트
-                                        const updateRegistrationQuery = `
-                                        UPDATE registrations SET slot = slot - ? WHERE id = ?;
-                                        `;
-
-                                        connection.query(updateRegistrationQuery, [slotsToDeduct, registration.id], (err) => {
-                                            if (err) {
-                                                console.error('Failed to update registration slot:', err);
-                                            } else {
-                                                console.log('Registration updated with ID:', registration.id);
-                                            }
-                                        });
                                     }
-                                }
-                            });
+                                });
+                            } else {
+                                // 일부 슬롯만 만료된 경우, 남은 슬롯 수만큼 업데이트
+                                const updateRegistrationQuery = `
+                                UPDATE registrations SET slot = slot - ? WHERE id = ?;
+                                `;
+
+                                connection.query(updateRegistrationQuery, [slotsToDeduct, registration.id], (err) => {
+                                    if (err) {
+                                        console.error('Failed to update registration slot:', err);
+                                    } else {
+                                        console.log('Registration updated with ID:', registration.id);
+                                    }
+                                });
+                            }
                         }
                     });
 
