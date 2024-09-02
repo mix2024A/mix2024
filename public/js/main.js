@@ -176,7 +176,7 @@ async function updateKeywordRankings() {
         const rankCell = row.querySelector('td:nth-child(1)');
 
         try {
-            const response = await fetch(`https://mac.search.naver.com/mobile/ac?q="${displayKeyword}"&st=1`);
+            const response = await fetch(`https://mac.search.naver.com/mobile/ac?q=${displayKeyword}&st=1`);
             const data = await response.json();
 
             let newRank = null;
