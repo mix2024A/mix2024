@@ -473,15 +473,15 @@ exports.handleExpiredSlots = () => {
         } else {
             console.log('User slots updated:', results.affectedRows);
 
-            // 만료된 슬롯 수만큼 오래된 키워드 슬롯을 차감
-            const adjustRegistrationSlotsQuery = `
-            SELECT id, username, search_term, display_keyword, slot, note
+            // 남은 슬롯이 0 이하인 사용자의 등록된 키워드에서 오래된 순서대로 슬롯 차감 및 삭제
+            const fetchRegistrationsQuery = `
+            SELECT id, username, search_term, display_keyword, slot, note, created_at
             FROM registrations
             WHERE username IN (SELECT username FROM users WHERE remainingSlots = 0)
             ORDER BY created_at ASC;
             `;
 
-            connection.query(adjustRegistrationSlotsQuery, (err, registrations) => {
+            connection.query(fetchRegistrationsQuery, (err, registrations) => {
                 if (err) {
                     console.error('Failed to fetch registrations for slot adjustment:', err);
                 } else {
@@ -499,7 +499,14 @@ exports.handleExpiredSlots = () => {
                                 VALUES (?, ?, ?, ?, ?, ?, NOW());
                                 `;
 
-                                connection.query(moveDeletedKeywordsQuery, [registration.username, registration.search_term, registration.display_keyword, slotsToDeduct, registration.note, registration.created_at], (err) => {
+                                connection.query(moveDeletedKeywordsQuery, [
+                                    registration.username, 
+                                    registration.search_term, 
+                                    registration.display_keyword, 
+                                    registration.slot, 
+                                    registration.note, 
+                                    registration.created_at
+                                ], (err) => {
                                     if (err) {
                                         console.error('Failed to move deleted keywords:', err);
                                     } else {
