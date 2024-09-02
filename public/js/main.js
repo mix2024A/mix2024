@@ -172,25 +172,32 @@ async function updateKeywordRankings() {
     const rows = document.querySelectorAll('.main-account-table tbody tr');
 
     for (const row of rows) {
-        const displayKeyword = row.querySelector('td:nth-child(3)').textContent;
+        const displayKeyword = row.querySelector('td:nth-child(3)').textContent.trim();
         const rankCell = row.querySelector('td:nth-child(1)');
 
         try {
             // 클라이언트에서 서버의 프록시 라우트로 요청을 보냅니다.
-            const response = await fetch(`/proxy?q="${displayKeyword}"&st=1`);
+            const response = await fetch(`/proxy?q=${encodeURIComponent(displayKeyword)}&st=1`);
             const data = await response.json();
 
             let newRank = null;
-            if (data.items.some(item => item.keyword === displayKeyword)) {
-                newRank = data.items.findIndex(item => item.keyword === displayKeyword) + 1;
-                rankCell.textContent = newRank;
-                rankCell.style.color = ''; // 기본 색상으로 설정
+
+            if (data.items && data.items.length > 0) {
+                const itemArray = data.items[0]; // 첫 번째 배열을 가져옴
+                newRank = itemArray.findIndex(item => item[0] === displayKeyword) + 1;
+                
+                if (newRank > 0) {
+                    rankCell.textContent = newRank;
+                    rankCell.style.color = ''; // 기본 색상으로 설정
+                } else {
+                    rankCell.textContent = '-';
+                }
             } else {
                 rankCell.textContent = '-';
             }
 
             // 이전 순위가 있었는데 현재 순위가 없는 경우 "누락"으로 표시
-            if (previousRankings[displayKeyword] && newRank === null) {
+            if (previousRankings[displayKeyword] && newRank === 0) {
                 rankCell.textContent = '누락';
                 rankCell.style.color = 'red'; // "누락" 시 빨간색으로 표시
             }
@@ -204,6 +211,7 @@ async function updateKeywordRankings() {
         }
     }
 }
+
 
 
 
