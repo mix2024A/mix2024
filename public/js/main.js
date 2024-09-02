@@ -172,12 +172,12 @@ async function updateKeywordRankings() {
     const rows = document.querySelectorAll('.main-account-table tbody tr');
 
     for (const row of rows) {
+        const searchTerm = row.querySelector('td:nth-child(2)').textContent.trim(); // 검색어를 사용
         const displayKeyword = row.querySelector('td:nth-child(3)').textContent.trim();
         const rankCell = row.querySelector('td:nth-child(1)');
 
         try {
-            // 클라이언트에서 서버의 프록시 라우트로 요청을 보냅니다.
-            const response = await fetch(`/proxy?q=${encodeURIComponent(displayKeyword)}&st=1`);
+            const response = await fetch(`/proxy?q=${encodeURIComponent(searchTerm)}&st=1`);
             const data = await response.json();
 
             let newRank = null;
