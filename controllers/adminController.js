@@ -479,7 +479,6 @@ exports.handleExpiredSlots = () => {
         SELECT r.id, r.username, r.search_term, r.display_keyword, r.slot, r.note, r.created_at, u.remainingSlots
         FROM registrations r
         JOIN users u ON r.username = u.username
-        WHERE u.remainingSlots <= 0
         ORDER BY r.created_at ASC;
         `;
 
@@ -501,57 +500,65 @@ exports.handleExpiredSlots = () => {
                 }
 
                 const registration = registrations[index];
-                const slotsToDeduct = Math.min(remainingSlotsToDeduct, registration.slot);
-                remainingSlotsToDeduct -= slotsToDeduct;
 
-                if (slotsToDeduct === registration.slot) {
-                    // 슬롯이 모두 만료된 경우 삭제
-                    const moveDeletedKeywordsQuery = `
-                    INSERT INTO deleted_keywords (username, search_term, display_keyword, slot, note, created_at, deleted_at)
-                    VALUES (?, ?, ?, ?, ?, ?, NOW());
-                    `;
+                // 삭제를 수행하기 전에 사용자의 잔여 슬롯을 확인
+                if (registration.remainingSlots <= 0) {
+                    const slotsToDeduct = Math.min(remainingSlotsToDeduct, registration.slot);
+                    remainingSlotsToDeduct -= slotsToDeduct;
 
-                    connection.query(moveDeletedKeywordsQuery, [
-                        registration.username,
-                        registration.search_term,
-                        registration.display_keyword,
-                        registration.slot,
-                        registration.note,
-                        registration.created_at
-                    ], (err) => {
-                        if (err) {
-                            console.error('Failed to move deleted keywords:', err);
-                        } else {
-                            console.log('Deleted keywords moved for registration ID:', registration.id);
+                    if (slotsToDeduct === registration.slot) {
+                        // 슬롯이 모두 만료된 경우 삭제
+                        const moveDeletedKeywordsQuery = `
+                        INSERT INTO deleted_keywords (username, search_term, display_keyword, slot, note, created_at, deleted_at)
+                        VALUES (?, ?, ?, ?, ?, ?, NOW());
+                        `;
 
-                            const deleteRegistrationQuery = `
-                            DELETE FROM registrations WHERE id = ?;
-                            `;
+                        connection.query(moveDeletedKeywordsQuery, [
+                            registration.username,
+                            registration.search_term,
+                            registration.display_keyword,
+                            registration.slot,
+                            registration.note,
+                            registration.created_at
+                        ], (err) => {
+                            if (err) {
+                                console.error('Failed to move deleted keywords:', err);
+                            } else {
+                                console.log('Deleted keywords moved for registration ID:', registration.id);
 
-                            connection.query(deleteRegistrationQuery, [registration.id], (err) => {
-                                if (err) {
-                                    console.error('Failed to delete registration:', err);
-                                } else {
-                                    console.log('Registration deleted with ID:', registration.id);
-                                    processNextRegistration(index + 1); // 다음 등록된 키워드로 진행
-                                }
-                            });
-                        }
-                    });
+                                const deleteRegistrationQuery = `
+                                DELETE FROM registrations WHERE id = ?;
+                                `;
+
+                                connection.query(deleteRegistrationQuery, [registration.id], (err) => {
+                                    if (err) {
+                                        console.error('Failed to delete registration:', err);
+                                    } else {
+                                        console.log('Registration deleted with ID:', registration.id);
+                                        processNextRegistration(index + 1); // 다음 등록된 키워드로 진행
+                                    }
+                                });
+                            }
+                        });
+                    } else {
+                        // 일부 슬롯만 만료된 경우, 남은 슬롯 수만큼 업데이트
+                        const updateRegistrationQuery = `
+                        UPDATE registrations SET slot = slot - ? WHERE id = ?;
+                        `;
+
+                        connection.query(updateRegistrationQuery, [slotsToDeduct, registration.id], (err) => {
+                            if (err) {
+                                console.error('Failed to update registration slot:', err);
+                            } else {
+                                console.log('Registration updated with ID:', registration.id);
+                                processNextRegistration(index + 1); // 다음 등록된 키워드로 진행
+                            }
+                        });
+                    }
                 } else {
-                    // 일부 슬롯만 만료된 경우, 남은 슬롯 수만큼 업데이트
-                    const updateRegistrationQuery = `
-                    UPDATE registrations SET slot = slot - ? WHERE id = ?;
-                    `;
-
-                    connection.query(updateRegistrationQuery, [slotsToDeduct, registration.id], (err) => {
-                        if (err) {
-                            console.error('Failed to update registration slot:', err);
-                        } else {
-                            console.log('Registration updated with ID:', registration.id);
-                            processNextRegistration(index + 1); // 다음 등록된 키워드로 진행
-                        }
-                    });
+                    // 잔여 슬롯이 충분한 경우, 키워드를 삭제하지 않음
+                    console.log(`Skipping registration ID ${registration.id} due to sufficient remaining slots.`);
+                    processNextRegistration(index + 1);
                 }
             }
         });
