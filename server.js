@@ -4,6 +4,7 @@ const path = require('path');
 const cron = require('node-cron');
 const adminController = require('./controllers/adminController');  // 경로가 정확해야 합니다.
 const userController = require('./controllers/userController');
+const cors = require('cors');
 
 const app = express();
 const port = 8080;
