@@ -1,10 +1,11 @@
 const express = require('express');
 const session = require('express-session');
+const cors = require('cors');
 const path = require('path');
 const cron = require('node-cron');
 const adminController = require('./controllers/adminController');  // 경로가 정확해야 합니다.
 const userController = require('./controllers/userController');
-const cors = require('cors');
+
 
 const app = express();
 const port = 8080;
@@ -13,7 +14,7 @@ const port = 8080;
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-
+app.use(cors());
 
 app.use(session({
     secret: 'your_secret_key',
