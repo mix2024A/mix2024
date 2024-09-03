@@ -21,8 +21,8 @@ document.addEventListener("DOMContentLoaded", function () {
    });
         
 
-// 삭제된 키워드 로드 및 테이블 업데이트
-function loadDeletedKeywords() {
+   // 삭제된 키워드 로드 및 테이블 업데이트
+   function loadDeletedKeywords() {
     fetch('/user/get-deleted-keywords')
         .then(response => response.json())
         .then(data => {
@@ -43,15 +43,12 @@ function loadDeletedKeywords() {
                 const dateDeleted = new Date(item.deleted_at);
                 const formattedDateDeleted = `${dateDeleted.getFullYear()}-${('0' + (dateDeleted.getMonth() + 1)).slice(-2)}-${('0' + dateDeleted.getDate()).slice(-2)}`;
 
-                const row = document.createElement('tr');
-                row.setAttribute('data-id', item.id);
-
-                // 누락된 경우 표시
                 const rankText = (item.ranking === -1) ? '누락' : (item.ranking !== null ? item.ranking : '-');
 
-
+                const row = document.createElement('tr');
+                row.setAttribute('data-id', item.id); // 행에 id 속성 추가
                 row.innerHTML = `
-                    <td>${rankText || '-'}</td> <!-- 순위 --> 
+                    <td>${rankText}</td> <!-- 순위 --> 
                     <td>${item.search_term}</td>
                     <td>${item.display_keyword}</td>
                     <td>${item.slot}</td>
