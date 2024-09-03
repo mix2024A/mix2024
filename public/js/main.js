@@ -1,5 +1,8 @@
 document.addEventListener("DOMContentLoaded", function () {
-
+    const storedRankings = localStorage.getItem('previousRankings');
+    if (storedRankings) {
+        previousRankings = JSON.parse(storedRankings);
+    }
     let previousRankings = {};  // 이전 순위 상태를 저장할 객체
     let currentPage = 1;
     let itemsPerPage = 50; // 기본값은 50개로 설정
@@ -197,13 +200,14 @@ async function updateKeywordRankings() {
             }
 
             // 이전 순위가 있었는데 현재 순위가 없는 경우 "누락"으로 표시
-            if (previousRankings[displayKeyword] && newRank === 0) {
+            if (previousRankings[displayKeyword] && newRank === null) {
                 rankCell.textContent = '누락';
                 rankCell.style.color = 'red'; // "누락" 시 빨간색으로 표시
             }
 
             // 현재 순위를 저장하여 다음 업데이트 시 비교할 수 있도록 합니다.
             previousRankings[displayKeyword] = newRank;
+            localStorage.setItem('previousRankings', JSON.stringify(previousRankings));
 
         } catch (error) {
             console.error('Error fetching ranking:', error);
