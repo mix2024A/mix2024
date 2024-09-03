@@ -152,7 +152,14 @@ document.addEventListener("DOMContentLoaded", function () {
                         <td><button class="account-delete-button">삭제</button></td>
                     `;
                     tableBody.appendChild(row);
-    
+                    
+                        // "누락" 처리 로직 추가
+                    if (previousRankings[item.display_keyword] && !item.ranking) {
+                        const rankCell = row.querySelector('td:first-child');
+                        rankCell.textContent = '누락';
+                        rankCell.style.color = 'red';
+    }
+
                     // 순위 상태 저장 초기화
                     previousRankings[item.display_keyword] = null;
                 });
