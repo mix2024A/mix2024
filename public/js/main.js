@@ -107,7 +107,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 document.getElementById('slot-input').value = '';
                 document.getElementById('note').value = '';
         
-                checkSingleKeywordRanking(data.searchTerm, data.displayKeyword);
                 updateUserInfo(); // 슬롯 및 키워드 수 업데이트
             } else {
                 alert('등록에 실패했습니다: ' + result.error);
