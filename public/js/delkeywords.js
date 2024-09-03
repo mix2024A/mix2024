@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", function () {
    });
         
 // 삭제된 키워드 로드 및 테이블 업데이트
+// 삭제된 키워드 로드 및 테이블 업데이트
 function loadDeletedKeywords() {
     fetch('/user/get-deleted-keywords')
         .then(response => response.json())
@@ -30,7 +31,7 @@ function loadDeletedKeywords() {
 
             if (!data || data.length === 0) {
                 const row = document.createElement('tr');
-                row.innerHTML = `<td colspan="7">삭제된 키워드가 없습니다.</td>`;
+                row.innerHTML = `<td colspan="8">삭제된 키워드가 없습니다.</td>`;
                 tableBody.appendChild(row);
                 return;
             }
@@ -45,7 +46,7 @@ function loadDeletedKeywords() {
                 const row = document.createElement('tr');
                 row.setAttribute('data-id', item.id); // 행에 id 속성 추가
                 row.innerHTML = `
-                     <td>${item.ranking || '-'}</td> <!-- 순위 --> 
+                    <td>${item.ranking || '-'}</td> <!-- 순위 --> 
                     <td>${item.search_term}</td>
                     <td>${item.display_keyword}</td>
                     <td>${item.slot}</td>
@@ -58,6 +59,7 @@ function loadDeletedKeywords() {
         })
         .catch(error => console.error('Error loading deleted keywords:', error));
 }
+
 
     // 페이지 로드 시 삭제된 키워드 표시
     loadDeletedKeywords();

@@ -190,7 +190,6 @@ exports.getRegisteredSearchTerms = (req, res) => {
 };
 
 
-// 키워드 삭제 함수 수정
 exports.deleteKeyword = (req, res) => {
     validateSession(req, res, () => {
         const idToDelete = req.body.id;
@@ -218,7 +217,7 @@ exports.deleteKeyword = (req, res) => {
 
                 // 삭제할 키워드의 데이터를 먼저 가져옴
                 const getKeywordQuery = `
-                    SELECT search_term, display_keyword, slot, created_at, note 
+                    SELECT search_term, display_keyword, slot, created_at, note, ranking 
                     FROM registrations 
                     WHERE id = ? AND username = ?
                 `;
@@ -238,8 +237,8 @@ exports.deleteKeyword = (req, res) => {
 
                         // 삭제된 키워드를 deleted_keywords 테이블에 삽입
                         const insertDeletedQuery = `
-                            INSERT INTO deleted_keywords (username, search_term, display_keyword, slot, created_at, deleted_at, note, scheduled_deletion_date)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                            INSERT INTO deleted_keywords (username, search_term, display_keyword, slot, created_at, deleted_at, note, scheduled_deletion_date, ranking)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                         `;
 
                         connection.query(insertDeletedQuery, [
@@ -250,7 +249,8 @@ exports.deleteKeyword = (req, res) => {
                             keyword.created_at,
                             now,
                             keyword.note,
-                            scheduledDeletionDate
+                            scheduledDeletionDate,
+                            keyword.ranking  // 삭제 당시의 순위 저장
                         ], (err) => {
                             if (err) {
                                 console.error('Error inserting deleted keyword:', err);
