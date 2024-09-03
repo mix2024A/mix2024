@@ -141,7 +141,7 @@ function loadRegisteredSearchTerms() {
                 row.setAttribute('data-id', item.id);
 
                 let rankDisplay = '-'; // 기본값으로 '-' 설정
-                if (item.ranking === '누락') {
+                if (item.ranking === -1) {
                     rankDisplay = '누락';
                 } else if (item.ranking) {
                     rankDisplay = item.ranking;
@@ -161,7 +161,7 @@ function loadRegisteredSearchTerms() {
                 tableBody.appendChild(row);
                 
                 // "누락"인 경우 스타일 적용
-                if (item.ranking === '누락') {
+                if (item.ranking === -1) {
                     const rankCell = row.querySelector('td:first-child');
                     rankCell.style.color = 'red';
                 }

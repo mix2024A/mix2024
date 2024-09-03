@@ -250,7 +250,7 @@ exports.deleteKeyword = (req, res) => {
                             now,
                             keyword.note,
                             scheduledDeletionDate,
-                            keyword.ranking  // 삭제 당시의 순위 저장
+                            keyword.ranking !== -1 ? keyword.ranking : null  // '누락'이었으면 null로 저장
                         ], (err) => {
                             if (err) {
                                 console.error('Error inserting deleted keyword:', err);
@@ -504,7 +504,7 @@ exports.updateKeywordRankings = () => {
                 // 새로운 순위가 없고, 이전에 순위가 있었던 경우 "누락" 처리
                 if (newRank === null && previousRank !== null) {
                     console.log(`Keyword "${displayKeyword}" is missing from the rankings. Marking as "누락".`);
-                    newRank = '누락';
+                    newRank = -1;  // '누락'을 데이터베이스에 -1로 저장
                 }
 
                 const updateQuery = `
