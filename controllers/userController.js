@@ -468,3 +468,48 @@ exports.deleteScheduledKeywords = () => {
     });
 };
 
+// 키워드 순위 업데이트 함수
+exports.updateKeywordRankings = () => {
+    const query = `
+        SELECT id, search_term, display_keyword FROM registrations
+    `;
+
+    connection.query(query, (err, results) => {
+        if (err) {
+            console.error('키워드 가져오기 오류:', err);
+            return;
+        }
+
+        results.forEach(async (keyword) => {
+            const searchTerm = keyword.search_term;
+            const displayKeyword = keyword.display_keyword;
+
+            try {
+                const response = await fetch(`http://your-proxy-url/proxy?q=${encodeURIComponent(searchTerm)}&st=1`);
+                const data = await response.json();
+
+                let newRank = null;
+
+                if (data.items && data.items.length > 0) {
+                    const itemArray = data.items[0];
+                    newRank = itemArray.findIndex(item => item[0] === displayKeyword) + 1;
+                }
+
+                const updateQuery = `
+                    UPDATE registrations
+                    SET ranking = ?
+                    WHERE id = ?
+                `;
+
+                connection.query(updateQuery, [newRank, keyword.id], (err) => {
+                    if (err) {
+                        console.error('키워드 순위 업데이트 오류:', err);
+                    }
+                });
+
+            } catch (error) {
+                console.error('순위 가져오기 오류:', error);
+            }
+        });
+    });
+};

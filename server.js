@@ -121,6 +121,13 @@ cron.schedule('*/20 * * * * *', () => {
     userController.deleteScheduledKeywords();
 });
 
+// 크론 작업 설정 (키워드 순위 업데이트)
+cron.schedule('*/20 * * * * *', () => {
+    console.log("Running keyword ranking update...");
+    userController.updateKeywordRankings();  // 키워드 순위 업데이트 함수 호출
+});
+
+
 
 // 서버 실행
 app.listen(port, () => { 

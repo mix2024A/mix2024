@@ -148,7 +148,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     const row = document.createElement('tr');
                     row.setAttribute('data-id', item.id);
                     row.innerHTML = `
-                        <td>-</td> <!-- 순위 셀 초기화 -->
+                        <td>${item.ranking || '-'}</td> <!-- 순위 -->
                         <td>${item.search_term}</td>
                         <td>${item.display_keyword}</td>
                         <td>${item.slot}</td>
@@ -165,59 +165,12 @@ document.addEventListener("DOMContentLoaded", function () {
     
                 setupPagination(data.totalItems);
     
-                // 테이블이 로드된 후에 순위를 업데이트합니다.
-                updateKeywordRankings();
+
             })
             .catch(error => console.error('Error loading registered search terms:', error));
     }
     
     
-// 순위를 업데이트하는 함수
-async function updateKeywordRankings() {
-    const rows = document.querySelectorAll('.main-account-table tbody tr');
-
-    for (const row of rows) {
-        const searchTerm = row.querySelector('td:nth-child(2)').textContent.trim(); // 검색어를 사용
-        const displayKeyword = row.querySelector('td:nth-child(3)').textContent.trim();
-        const rankCell = row.querySelector('td:nth-child(1)');
-
-        try {
-            const response = await fetch(`/proxy?q=${encodeURIComponent(searchTerm)}&st=1`);
-            const data = await response.json();
-
-            let newRank = null;
-
-            if (data.items && data.items.length > 0) {
-                const itemArray = data.items[0]; // 첫 번째 배열을 가져옴
-                newRank = itemArray.findIndex(item => item[0] === displayKeyword) + 1;
-                
-                if (newRank > 0) {
-                    rankCell.textContent = newRank;
-                    rankCell.style.color = ''; // 기본 색상으로 설정
-                } else {
-                    rankCell.textContent = '-';
-                }
-            } else {
-                rankCell.textContent = '-';
-            }
-
-            // 이전 순위가 있었는데 현재 순위가 없는 경우 "누락"으로 표시
-            if (previousRankings[displayKeyword] && newRank === null) {
-                rankCell.textContent = '누락';
-                rankCell.style.color = 'red'; // "누락" 시 빨간색으로 표시
-            }
-
-            // 현재 순위를 저장하여 다음 업데이트 시 비교할 수 있도록 합니다.
-            previousRankings[displayKeyword] = newRank;
-            localStorage.setItem('previousRankings', JSON.stringify(previousRankings));
-
-        } catch (error) {
-            console.error('Error fetching ranking:', error);
-            rankCell.textContent = '-';
-        }
-    }
-}
-
 
 
 
@@ -453,7 +406,6 @@ document.getElementById('confirmDelete').addEventListener('click', function() {
     // 페이지 로드 시 테이블에 등록된 검색어 표시
     loadRegisteredSearchTerms();
 
-    // 일정 주기마다 순위를 갱신
-    setInterval(updateKeywordRankings, 60000); // 1분마다 순위 갱신
+
 });
 
