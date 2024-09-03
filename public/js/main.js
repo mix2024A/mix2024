@@ -1,11 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
 
-    let previousRankings = {};  // 이전 순위 상태를 저장할 객체
-    const storedRankings = localStorage.getItem('previousRankings');
-    if (storedRankings) {
-        previousRankings = JSON.parse(storedRankings);
-    }
-
     let currentPage = 1;
     let itemsPerPage = 50; // 기본값은 50개로 설정
 

@@ -485,7 +485,8 @@ exports.updateKeywordRankings = () => {
             const displayKeyword = keyword.display_keyword;
 
             try {
-                const response = await fetch(`http://your-proxy-url/proxy?q=${encodeURIComponent(searchTerm)}&st=1`);
+                const response = await fetch(`http://3.36.63.212:8080/proxy?q=${encodeURIComponent(searchTerm)}&st=1`);
+
                 const data = await response.json();
 
                 let newRank = null;
