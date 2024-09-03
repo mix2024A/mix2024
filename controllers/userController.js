@@ -471,7 +471,7 @@ exports.deleteScheduledKeywords = () => {
 // 키워드 순위 업데이트 함수
 exports.updateKeywordRankings = () => {
     const query = `
-        SELECT id, search_term, display_keyword FROM registrations
+        SELECT id, search_term, display_keyword, ranking FROM registrations
     `;
 
     connection.query(query, (err, results) => {
@@ -483,6 +483,7 @@ exports.updateKeywordRankings = () => {
         results.forEach(async (keyword) => {
             const searchTerm = keyword.search_term;
             const displayKeyword = keyword.display_keyword;
+            const previousRank = keyword.ranking;  // 이전 순위
 
             try {
                 const response = await fetch(`http://3.36.63.212:8080/proxy?q=${encodeURIComponent(searchTerm)}&st=1`);
@@ -494,6 +495,16 @@ exports.updateKeywordRankings = () => {
                 if (data.items && data.items.length > 0) {
                     const itemArray = data.items[0];
                     newRank = itemArray.findIndex(item => item[0] === displayKeyword) + 1;
+                }
+
+                if (newRank === 0) {
+                    newRank = null; // 순위가 검색되지 않았을 때 newRank를 null로 설정
+                }
+
+                // 새로운 순위가 없고, 이전에 순위가 있었던 경우 "누락" 처리
+                if (newRank === null && previousRank !== null) {
+                    console.log(`Keyword "${displayKeyword}" is missing from the rankings. Marking as "누락".`);
+                    newRank = '누락';
                 }
 
                 const updateQuery = `

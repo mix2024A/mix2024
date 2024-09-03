@@ -120,58 +120,58 @@ document.addEventListener("DOMContentLoaded", function () {
        }
    });
 
-    // 등록된 검색어 로드 및 테이블 업데이트
-    function loadRegisteredSearchTerms() {
-        fetch(`/user/get-registered-search-terms?page=${currentPage}&limit=${itemsPerPage}`)
-            .then(response => response.json())
-            .then(data => {
-                if (!data.items) {
-                    console.error('Error: No items in response');
-                    return;
+// 등록된 검색어 로드 및 테이블 업데이트
+function loadRegisteredSearchTerms() {
+    fetch(`/user/get-registered-search-terms?page=${currentPage}&limit=${itemsPerPage}`)
+        .then(response => response.json())
+        .then(data => {
+            if (!data.items) {
+                console.error('Error: No items in response');
+                return;
+            }
+
+            const tableBody = document.querySelector('tbody');
+            tableBody.innerHTML = ''; 
+
+            data.items.forEach((item, index) => {
+                const date = new Date(item.created_at);
+                const formattedDate = date.toISOString().split('T')[0];
+
+                const row = document.createElement('tr');
+                row.setAttribute('data-id', item.id);
+
+                let rankDisplay = '-'; // 기본값으로 '-' 설정
+                if (item.ranking === '누락') {
+                    rankDisplay = '누락';
+                } else if (item.ranking) {
+                    rankDisplay = item.ranking;
                 }
-    
-                const tableBody = document.querySelector('tbody');
-                tableBody.innerHTML = ''; 
-    
-                previousRankings = {};  // 이전 순위 상태 초기화
-    
-                data.items.forEach((item, index) => {
-                    const date = new Date(item.created_at);
-                    const formattedDate = date.toISOString().split('T')[0];
-    
-                    const row = document.createElement('tr');
-                    row.setAttribute('data-id', item.id);
-                    row.innerHTML = `
-                        <td>${item.ranking || '-'}</td> <!-- 순위 -->
-                        <td>${item.search_term}</td>
-                        <td>${item.display_keyword}</td>
-                        <td>${item.slot}</td>
-                        <td>${formattedDate}</td>
-                        <td>${item.note}</td>
-                        <td><button class="account-edit-button">수정</button></td>
-                        <td><button class="account-delete-button">삭제</button></td>
-                    `;
-                    tableBody.appendChild(row);
-                    
-                        // "누락" 처리 로직 추가
-                    if (previousRankings[item.display_keyword] && !item.ranking) {
-                        const rankCell = row.querySelector('td:first-child');
-                        rankCell.textContent = '누락';
-                        rankCell.style.color = 'red';
-    }
 
-                    // 순위 상태 저장 초기화
-                    previousRankings[item.display_keyword] = null;
-                });
-    
-                setupPagination(data.totalItems);
-    
+                row.innerHTML = `
+                    <td>${rankDisplay}</td> <!-- 순위 -->
+                    <td>${item.search_term}</td>
+                    <td>${item.display_keyword}</td>
+                    <td>${item.slot}</td>
+                    <td>${formattedDate}</td>
+                    <td>${item.note}</td>
+                    <td><button class="account-edit-button">수정</button></td>
+                    <td><button class="account-delete-button">삭제</button></td>
+                `;
 
-            })
-            .catch(error => console.error('Error loading registered search terms:', error));
-    }
-    
-    
+                tableBody.appendChild(row);
+                
+                // "누락"인 경우 스타일 적용
+                if (item.ranking === '누락') {
+                    const rankCell = row.querySelector('td:first-child');
+                    rankCell.style.color = 'red';
+                }
+            });
+
+            setupPagination(data.totalItems);
+        })
+        .catch(error => console.error('Error loading registered search terms:', error));
+}
+
 
 
 
