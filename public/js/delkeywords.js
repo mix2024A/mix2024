@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", function () {
        }
    });
         
-// 삭제된 키워드 로드 및 테이블 업데이트
+
 // 삭제된 키워드 로드 및 테이블 업데이트
 function loadDeletedKeywords() {
     fetch('/user/get-deleted-keywords')
@@ -46,7 +46,7 @@ function loadDeletedKeywords() {
                 const row = document.createElement('tr');
                 row.setAttribute('data-id', item.id); // 행에 id 속성 추가
                 row.innerHTML = `
-                    <td>${item.ranking || '-'}</td> <!-- 순위 --> 
+                    <td>${rankDisplay}</td>
                     <td>${item.search_term}</td>
                     <td>${item.display_keyword}</td>
                     <td>${item.slot}</td>
