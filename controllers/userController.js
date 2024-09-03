@@ -34,7 +34,7 @@ exports.getUserInfo = (req, res) => {
 exports.getDeletedKeywords = (req, res) => {
     validateSession(req, res, () => {
         const query = `
-            SELECT search_term, display_keyword, slot, created_at, deleted_at, note
+            SELECT search_term, display_keyword, slot, created_at, deleted_at, note, ranking
             FROM deleted_keywords
             WHERE username = ?  -- 현재 로그인한 사용자와 연관된 키워드만 가져옴
             ORDER BY deleted_at DESC
