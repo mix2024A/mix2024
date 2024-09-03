@@ -46,7 +46,7 @@ function loadDeletedKeywords() {
                 const row = document.createElement('tr');
                 row.setAttribute('data-id', item.id); // 행에 id 속성 추가
                 row.innerHTML = `
-                    <td>${rankDisplay}</td>
+                    <td>${item.ranking || '-'}</td> <!-- 순위 --> 
                     <td>${item.search_term}</td>
                     <td>${item.display_keyword}</td>
                     <td>${item.slot}</td>
