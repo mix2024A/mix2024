@@ -165,7 +165,8 @@ document.addEventListener("DOMContentLoaded", function () {
     
                 setupPagination(data.totalItems);
     
-
+                // 테이블이 로드된 후에 순위를 업데이트합니다.
+                updateKeywordRankings();
             })
             .catch(error => console.error('Error loading registered search terms:', error));
     }
