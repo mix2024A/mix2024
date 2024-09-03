@@ -164,6 +164,7 @@ function loadRegisteredSearchTerms() {
                 if (item.ranking === -1) {
                     const rankCell = row.querySelector('td:first-child');
                     rankCell.style.color = 'red';
+                    rankCell.style.fontWeight = 'bold';
                 }
             });
 
