@@ -51,7 +51,7 @@ function loadDeletedKeywords() {
 
 
                 row.innerHTML = `
-                    <td>${item.ranking || '-'}</td> <!-- 순위 --> 
+                    <td>${rankText || '-'}</td> <!-- 순위 --> 
                     <td>${item.search_term}</td>
                     <td>${item.display_keyword}</td>
                     <td>${item.slot}</td>
