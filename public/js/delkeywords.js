@@ -21,8 +21,8 @@ document.addEventListener("DOMContentLoaded", function () {
    });
         
 
-   // 삭제된 키워드 로드 및 테이블 업데이트
-   function loadDeletedKeywords() {
+// 삭제된 키워드 로드 및 테이블 업데이트
+function loadDeletedKeywords() {
     fetch('/user/get-deleted-keywords')
         .then(response => response.json())
         .then(data => {
@@ -43,12 +43,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 const dateDeleted = new Date(item.deleted_at);
                 const formattedDateDeleted = `${dateDeleted.getFullYear()}-${('0' + (dateDeleted.getMonth() + 1)).slice(-2)}-${('0' + dateDeleted.getDate()).slice(-2)}`;
 
-                const rankText = (item.ranking === -1) ? '누락' : (item.ranking !== null ? item.ranking : '-');
+                let rankDisplay = '-'; // 기본값으로 '-' 설정
+                if (item.ranking === -1) {
+                    rankDisplay = '누락';
+                } else if (item.ranking) {
+                    rankDisplay = item.ranking;
+                }
 
                 const row = document.createElement('tr');
                 row.setAttribute('data-id', item.id); // 행에 id 속성 추가
                 row.innerHTML = `
-                    <td>${rankText}</td> <!-- 순위 --> 
+                    <td>${rankDisplay}</td> <!-- 순위 --> 
                     <td>${item.search_term}</td>
                     <td>${item.display_keyword}</td>
                     <td>${item.slot}</td>
@@ -57,11 +62,17 @@ document.addEventListener("DOMContentLoaded", function () {
                     <td>${item.note}</td>
                 `;
                 tableBody.appendChild(row);
+
+                // "누락"인 경우 스타일 적용
+                if (item.ranking === -1) {
+                    const rankCell = row.querySelector('td:first-child');
+                    rankCell.style.color = 'red';
+                    rankCell.style.fontWeight = 'bold';
+                }
             });
         })
         .catch(error => console.error('Error loading deleted keywords:', error));
 }
-
 
 
     // 페이지 로드 시 삭제된 키워드 표시
