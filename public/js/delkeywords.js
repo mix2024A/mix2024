@@ -44,9 +44,13 @@ function loadDeletedKeywords() {
                 const formattedDateDeleted = `${dateDeleted.getFullYear()}-${('0' + (dateDeleted.getMonth() + 1)).slice(-2)}-${('0' + dateDeleted.getDate()).slice(-2)}`;
 
                 const row = document.createElement('tr');
-                row.setAttribute('data-id', item.id); // 행에 id 속성 추가
+                row.setAttribute('data-id', item.id);
+
+                // 누락된 경우 표시
+                const rankText = (item.ranking === -1) ? '누락' : (item.ranking || '-');
+
                 row.innerHTML = `
-                    <td>${item.ranking || '-'}</td> <!-- 순위 --> 
+                    <td>${rankText}</td> <!-- 순위 --> 
                     <td>${item.search_term}</td>
                     <td>${item.display_keyword}</td>
                     <td>${item.slot}</td>
@@ -59,6 +63,7 @@ function loadDeletedKeywords() {
         })
         .catch(error => console.error('Error loading deleted keywords:', error));
 }
+
 
 
     // 페이지 로드 시 삭제된 키워드 표시
