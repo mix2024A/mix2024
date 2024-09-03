@@ -73,106 +73,49 @@ document.addEventListener("DOMContentLoaded", function () {
             .catch(error => console.error('Error fetching user info:', error));
     }
 
-// 등록 버튼 클릭 시 서버로 데이터 전송
-document.getElementById('register-button').addEventListener('click', function() {
-    const searchTerm = document.getElementById('search-term').value ? document.getElementById('search-term').value.trim() : '';
-    const displayKeyword = document.getElementById('display-keyword').value ? document.getElementById('display-keyword').value.trim() : '';
-    const slot = document.getElementById('slot-input').value ? document.getElementById('slot-input').value.trim() : ''; 
-    const note = document.getElementById('note').value ? document.getElementById('note').value.trim() : '';
+    // 등록 버튼 클릭 시 서버로 데이터 전송
+    document.getElementById('register-button').addEventListener('click', function() {
+        const searchTerm = document.getElementById('search-term').value ? document.getElementById('search-term').value.trim() : '';
+        const displayKeyword = document.getElementById('display-keyword').value ? document.getElementById('display-keyword').value.trim() : '';
+        const slot = document.getElementById('slot-input').value ? document.getElementById('slot-input').value.trim() : ''; 
+        const note = document.getElementById('note').value ? document.getElementById('note').value.trim() : '';
 
-    if (!searchTerm || !displayKeyword || !slot) {
-        alert('검색어, 노출 키워드 및 슬롯은 필수 입력 항목입니다.');
-        return;
-    }
-
-    const data = {
-        searchTerm: searchTerm,
-        displayKeyword: displayKeyword,
-        slot: slot,
-        note: note
-    };
-
-    fetch('/user/register-search-term', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(result => {
-        if (result.success) {
-            document.getElementById('search-term').value = '';
-            document.getElementById('display-keyword').value = '';
-            document.getElementById('slot-input').value = '';
-            document.getElementById('note').value = '';
-
-            // 새로운 키워드를 테이블에 추가
-            addKeywordToTable(data.searchTerm, data.displayKeyword, data.slot, data.note);
-
-            // 새로 등록된 키워드의 순위만 체크
-            checkSingleKeywordRanking(data.searchTerm, data.displayKeyword);
-
-            // 슬롯 및 키워드 수 업데이트
-            updateUserInfo();
-        } else {
-            alert('등록에 실패했습니다: ' + result.error);
+        if (!searchTerm || !displayKeyword || !slot) {
+            alert('검색어, 노출 키워드 및 슬롯은 필수 입력 항목입니다.');
+            return;
         }
-    })
-    .catch(error => console.error('Error registering search term:', error));
-});
 
-// 새로운 키워드를 테이블에 추가하는 함수
-function addKeywordToTable(searchTerm, displayKeyword, slot, note) {
-    const tableBody = document.querySelector('tbody');
-    const date = new Date().toISOString().split('T')[0];
+        const data = {
+            searchTerm: searchTerm,
+            displayKeyword: displayKeyword,
+            slot: slot,
+            note: note
+        };
 
-    const row = document.createElement('tr');
-    row.innerHTML = `
-        <td>-</td> <!-- 순위 셀 초기화 -->
-        <td>${searchTerm}</td>
-        <td>${displayKeyword}</td>
-        <td>${slot}</td>
-        <td>${date}</td>
-        <td>${note}</td>
-        <td><button class="account-edit-button">수정</button></td>
-        <td><button class="account-delete-button">삭제</button></td>
-    `;
-    tableBody.appendChild(row);
-
-    // 새로운 키워드의 순위만 체크
-    checkSingleKeywordRanking(searchTerm, displayKeyword, row);
-}
-
-// 새로운 키워드의 순위만 체크하는 함수
-async function checkSingleKeywordRanking(searchTerm, displayKeyword, row) {
-    const rankCell = row.querySelector('td:nth-child(1)');
-
-    try {
-        const response = await fetch(`/proxy?q=${encodeURIComponent(searchTerm)}&st=1`);
-        const data = await response.json();
-
-        let newRank = null;
-
-        if (data.items && data.items.length > 0) {
-            const itemArray = data.items[0];
-            newRank = itemArray.findIndex(item => item[0] === displayKeyword) + 1;
-            
-            if (newRank > 0) {
-                rankCell.textContent = newRank;
-                rankCell.style.color = ''; // 기본 색상으로 설정
+        fetch('/user/register-search-term', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                document.getElementById('search-term').value = '';
+                document.getElementById('display-keyword').value = '';
+                document.getElementById('slot-input').value = '';
+                document.getElementById('note').value = '';
+        
+                loadRegisteredSearchTerms();
+                updateUserInfo(); // 슬롯 및 키워드 수 업데이트
             } else {
-                rankCell.textContent = '-';
+                alert('등록에 실패했습니다: ' + result.error);
             }
-        } else {
-            rankCell.textContent = '-';
-        }
-    } catch (error) {
-        console.error('Error fetching ranking:', error);
-        rankCell.textContent = '-';
-    }
-}
-
+        })
+        .catch(error => console.error('Error registering search term:', error));
+        
+    });
 
    // 현재 페이지 URL과 일치하는 네비게이션 링크에 active 클래스 추가
    const currentPath = window.location.pathname;
