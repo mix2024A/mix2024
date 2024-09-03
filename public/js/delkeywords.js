@@ -47,7 +47,8 @@ function loadDeletedKeywords() {
                 row.setAttribute('data-id', item.id);
 
                 // 누락된 경우 표시
-                const rankText = (item.ranking === -1) ? '누락' : (item.ranking || '-');
+                const rankText = (item.ranking === -1) ? '누락' : (item.ranking !== null ? item.ranking : '-');
+
 
                 row.innerHTML = `
                     <td>${rankText}</td> <!-- 순위 --> 
