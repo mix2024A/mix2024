@@ -199,44 +199,57 @@ function setupPagination(totalItems) {
     }
 }
 
-    // 드롭다운 필터링 기능 추가
-    document.getElementById('search-button').addEventListener('click', function() {
+// 드롭다운 필터링 기능 추가
+document.getElementById('search-button').addEventListener('click', function() {
+    performSearch();
+});
+
+document.getElementById('search-input').addEventListener('keydown', function(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault(); // 엔터 키의 기본 동작(폼 제출)을 방지
         performSearch();
-    });
+    }
+});
 
-    document.getElementById('search-input').addEventListener('keydown', function(event) {
-        if (event.key === 'Enter') {
-            event.preventDefault(); // 엔터 키의 기본 동작(폼 제출)을 방지
-            performSearch();
-        }
-    });
+function performSearch() {
+    const filterType = document.getElementById('search-dropdown').value;
+    const filterValue = document.getElementById('search-input').value.toLowerCase();
 
-    function performSearch() {
-        const filterType = document.getElementById('search-dropdown').value;
-        const filterValue = document.getElementById('search-input').value.toLowerCase();
+    const rows = document.querySelectorAll('.main-account-table tbody tr');
 
-        const rows = document.querySelectorAll('.main-account-table tbody tr');
-
-        let columnIndex;
-        if (filterType === 'search-term') {
-            columnIndex = 1; // 검색어가 있는 열 인덱스
-        } else if (filterType === 'display-keyword') {
-            columnIndex = 2; // 노출 키워드가 있는 열 인덱스
-        } else if (filterType === 'note') {
-            columnIndex = 6; // 비고가 있는 열 인덱스
-        }
-        
-
+    let columnIndex;
+    if (filterType === 'search-term') {
+        columnIndex = 1; // 검색어가 있는 열 인덱스
+    } else if (filterType === 'display-keyword') {
+        columnIndex = 2; // 노출 키워드가 있는 열 인덱스
+    } else if (filterType === 'note') {
+        columnIndex = 5; // 비고가 있는 열 인덱스
+    } else if (filterType === 'missing-rank') {
+        // 누락 필터링 로직
         rows.forEach(row => {
-            const cell = row.querySelectorAll('td')[columnIndex];
-            const cellText = cell.textContent.toLowerCase();
-            if (cellText.includes(filterValue)) {
-                row.style.display = '';
+            const rankCell = row.querySelector('td:first-child'); // 첫 번째 열(순위)
+            const rankText = rankCell.textContent.toLowerCase(); // 순위 값
+            if (rankText === '누락') {
+                row.style.display = ''; // "누락"일 때 표시
             } else {
-                row.style.display = 'none';
+                row.style.display = 'none'; // 그렇지 않으면 숨기기
             }
         });
+        return; // "누락" 필터 적용 후 함수 종료
     }
+
+    // 일반적인 검색 필터 처리
+    rows.forEach(row => {
+        const cell = row.querySelectorAll('td')[columnIndex];
+        const cellText = cell.textContent.toLowerCase();
+        if (cellText.includes(filterValue)) {
+            row.style.display = ''; // 필터 조건에 맞으면 표시
+        } else {
+            row.style.display = 'none'; // 조건에 맞지 않으면 숨기기
+        }
+    });
+}
+
 
     // 테이블에서 수정 버튼 클릭 시 모달 창 표시
     document.querySelector('.main-account-table').addEventListener('click', function(event) {
