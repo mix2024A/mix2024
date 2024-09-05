@@ -109,22 +109,54 @@ app.get('/delkeywords', (req, res) => {
     }
 });
 
-// 크론 작업 설정
-cron.schedule('*/20 * * * * *', () => {
-    console.log("Calling handleExpiredSlots...");
-    adminController.handleExpiredSlots();  // 슬롯 만료 처리 함수 호출
+let isHandlingSlots = false;
+let isDeletingKeywords = false;
+let isUpdatingRankings = false;
+
+
+// 크론 작업 설정 (슬롯 만료 처리)
+cron.schedule('*/20 * * * * *', async () => {
+    if (isHandlingSlots) return; // 이미 실행 중이면 중단
+    isHandlingSlots = true; // 작업 시작 시 플래그 설정
+
+    try {
+        console.log("Calling handleExpiredSlots...");
+        await adminController.handleExpiredSlots();
+    } catch (error) {
+        console.error("Error in handleExpiredSlots:", error);
+    } finally {
+        isHandlingSlots = false; // 작업 완료 후 플래그 해제
+    }
 });
 
-// 매일 자정에 deleteScheduledKeywords 함수를 실행
-cron.schedule('*/20 * * * * *', () => {
-    console.log("Running scheduled keyword deletion...");
-    userController.deleteScheduledKeywords();
+// 크론 작업 설정 (키워드 삭제 처리)
+cron.schedule('*/20 * * * * *', async () => {
+    if (isDeletingKeywords) return; // 이미 실행 중이면 중단
+    isDeletingKeywords = true; // 작업 시작 시 플래그 설정
+
+    try {
+        console.log("Running scheduled keyword deletion...");
+        await userController.deleteScheduledKeywords();
+    } catch (error) {
+        console.error("Error in deleteScheduledKeywords:", error);
+    } finally {
+        isDeletingKeywords = false; // 작업 완료 후 플래그 해제
+    }
 });
 
 // 크론 작업 설정 (키워드 순위 업데이트)
-cron.schedule('*/20 * * * * *', () => {
-    console.log("Running keyword ranking update...");
-    userController.updateKeywordRankings();  // 키워드 순위 업데이트 함수 호출
+cron.schedule('*/20 * * * * *', async () => {
+    if (isUpdatingRankings) return; // 이미 실행 중이면 중단
+    isUpdatingRankings = true; // 작업 시작 시 플래그 설정
+
+    try {
+        console.log("Running keyword ranking update...");
+        await userController.updateKeywordRankings();
+    } catch (error) {
+        console.error("Error in updateKeywordRankings:", error);
+    } finally {
+        isUpdatingRankings = false; // 작업 완료 후 플래그 해제
+    }
 });
 
 
