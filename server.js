@@ -130,7 +130,7 @@ cron.schedule('*/20 * * * * *', async () => {
 });
 
 // 크론 작업 설정 (키워드 삭제 처리)
-cron.schedule('*/20 * * * * *', async () => {
+cron.schedule('0 0 * * *', async () => {
     if (isDeletingKeywords) return; // 이미 실행 중이면 중단
     isDeletingKeywords = true; // 작업 시작 시 플래그 설정
 
