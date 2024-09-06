@@ -191,16 +191,20 @@ exports.getRegisteredSearchTerms = (req, res) => {
 };
 
 
+// 키워드 삭제 함수
 exports.deleteKeyword = (req, res) => {
+    // 세션 유효성 검사
     validateSession(req, res, () => {
         const idToDelete = req.body.id;
 
+        // 사용자 수정 횟수(editCount)를 가져오는 쿼리
         const getUserEditCountQuery = `
             SELECT editCount 
             FROM users 
             WHERE username = ?
         `;
 
+        // 사용자 수정 횟수 조회
         connection.query(getUserEditCountQuery, [req.session.user], (err, userResults) => {
             if (err) {
                 console.error('Error fetching user edit count:', err);
@@ -210,10 +214,12 @@ exports.deleteKeyword = (req, res) => {
             if (userResults.length > 0) {
                 const editCount = userResults[0].editCount;
 
+                // 삭제할 수정 횟수가 부족할 경우 오류 반환
                 if (editCount <= 0) {
                     return res.status(400).json({ error: '삭제 횟수가 부족하여 키워드를 삭제할 수 없습니다.' });
                 }
 
+                // 삭제하려는 키워드의 데이터를 가져오는 쿼리
                 const getKeywordQuery = `
                     SELECT search_term, display_keyword, slot, created_at, ranking, note 
                     FROM registrations 
@@ -228,11 +234,12 @@ exports.deleteKeyword = (req, res) => {
 
                     if (results.length > 0) {
                         const keyword = results[0];
-                        const now = new Date();
-                        const scheduledDeletionDate = new Date();
+                        const now = new Date(); // 현재 시간
+                        const scheduledDeletionDate = new Date(); // 3일 후 삭제 예정 시간
                         scheduledDeletionDate.setDate(scheduledDeletionDate.getDate() + 3);
-                        scheduledDeletionDate.setHours(0, 0, 0, 0);
+                        scheduledDeletionDate.setHours(0, 0, 0, 0); // 자정으로 설정
 
+                        // 삭제된 키워드를 deleted_keywords 테이블에 삽입하는 쿼리
                         const insertDeletedQuery = `
                             INSERT INTO deleted_keywords (username, search_term, display_keyword, slot, created_at, deleted_at, note, scheduled_deletion_date, ranking)
                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -244,16 +251,17 @@ exports.deleteKeyword = (req, res) => {
                             keyword.display_keyword,
                             keyword.slot,
                             keyword.created_at,
-                            now,
+                            now, // 삭제된 시각
                             keyword.note,
-                            scheduledDeletionDate,
-                            keyword.ranking   // ranking 값을 복사합니다.
+                            scheduledDeletionDate, // 삭제 예정일
+                            keyword.ranking // ranking 값을 복사
                         ], (err) => {
                             if (err) {
                                 console.error('Error inserting deleted keyword:', err);
                                 return res.status(500).json({ error: 'Internal Server Error' });
                             }
 
+                            // registrations 테이블에서 키워드를 삭제하는 쿼리
                             const deleteQuery = `DELETE FROM registrations WHERE id = ? AND username = ?`;
                             connection.query(deleteQuery, [idToDelete, req.session.user], (err) => {
                                 if (err) {
@@ -261,6 +269,7 @@ exports.deleteKeyword = (req, res) => {
                                     return res.status(500).json({ error: 'Internal Server Error' });
                                 }
 
+                                // 슬롯 복원 쿼리 (remainingSlots를 복구)
                                 const restoreSlotsQuery = `
                                     UPDATE users 
                                     SET remainingSlots = remainingSlots + ? 
@@ -273,19 +282,24 @@ exports.deleteKeyword = (req, res) => {
                                         return res.status(500).json({ error: 'Internal Server Error' });
                                     }
 
-                                    const deductEditCountQuery = `
-                                        UPDATE users
-                                        SET editCount = GREATEST(0, editCount - 1)
-                                        WHERE username = ?
-                                    `;
-                                    connection.query(deductEditCountQuery, [req.session.user], (err) => {
-                                        if (err) {
-                                            console.error('Error deducting edit count:', err);
-                                            return res.status(500).json({ error: 'Internal Server Error' });
-                                        }
-
-                                        res.json({ success: true });
-                                    });
+                                    // 키워드가 누락되지 않은 경우에만 수정 횟수(editCount) 차감
+                                    if (keyword.ranking !== -1) {
+                                        const deductEditCountQuery = `
+                                            UPDATE users
+                                            SET editCount = GREATEST(0, editCount - 1)
+                                            WHERE username = ?
+                                        `;
+                                        connection.query(deductEditCountQuery, [req.session.user], (err) => {
+                                            if (err) {
+                                                console.error('Error deducting edit count:', err);
+                                                return res.status(500).json({ error: 'Internal Server Error' });
+                                            }
+                                            res.json({ success: true }); // 삭제 성공 응답
+                                        });
+                                    } else {
+                                        // 누락된 키워드는 editCount를 차감하지 않고 슬롯만 복구
+                                        res.json({ success: true }); // 삭제 성공 응답
+                                    }
                                 });
                             });
                         });
