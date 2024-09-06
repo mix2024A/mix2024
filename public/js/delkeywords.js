@@ -43,7 +43,7 @@ function loadDeletedKeywords() {
                 const dateDeleted = new Date(item.deleted_at);
                 const formattedDateDeleted = `${dateDeleted.getFullYear()}-${('0' + (dateDeleted.getMonth() + 1)).slice(-2)}-${('0' + dateDeleted.getDate()).slice(-2)}`;
 
-                let rankDisplay = '-'; // 기본값으로 '-' 설정
+                let rankDisplay = '-';
                 if (item.ranking === -1) {
                     rankDisplay = '누락';
                 } else if (item.ranking) {
@@ -63,7 +63,6 @@ function loadDeletedKeywords() {
                 `;
                 tableBody.appendChild(row);
 
-                // "누락"인 경우 스타일 적용
                 if (item.ranking === -1) {
                     const rankCell = row.querySelector('td:first-child');
                     rankCell.style.color = 'red';

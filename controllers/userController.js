@@ -195,7 +195,6 @@ exports.deleteKeyword = (req, res) => {
     validateSession(req, res, () => {
         const idToDelete = req.body.id;
 
-        // 먼저 유저의 수정 횟수를 검증
         const getUserEditCountQuery = `
             SELECT editCount 
             FROM users 
@@ -211,14 +210,12 @@ exports.deleteKeyword = (req, res) => {
             if (userResults.length > 0) {
                 const editCount = userResults[0].editCount;
 
-                // 수정 횟수가 0이면 삭제를 허용하지 않음
                 if (editCount <= 0) {
                     return res.status(400).json({ error: '삭제 횟수가 부족하여 키워드를 삭제할 수 없습니다.' });
                 }
 
-                // 삭제할 키워드의 데이터를 먼저 가져옴
                 const getKeywordQuery = `
-                    SELECT search_term, display_keyword, slot, created_at, note, ranking 
+                    SELECT search_term, display_keyword, slot, created_at, ranking, note 
                     FROM registrations 
                     WHERE id = ? AND username = ?
                 `;
@@ -234,9 +231,8 @@ exports.deleteKeyword = (req, res) => {
                         const now = new Date();
                         const scheduledDeletionDate = new Date();
                         scheduledDeletionDate.setDate(scheduledDeletionDate.getDate() + 3);
-                        scheduledDeletionDate.setHours(0, 0, 0, 0); // 자정으로 설정
+                        scheduledDeletionDate.setHours(0, 0, 0, 0);
 
-                        // 삭제된 키워드를 deleted_keywords 테이블에 삽입
                         const insertDeletedQuery = `
                             INSERT INTO deleted_keywords (username, search_term, display_keyword, slot, created_at, deleted_at, note, scheduled_deletion_date, ranking)
                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -251,14 +247,13 @@ exports.deleteKeyword = (req, res) => {
                             now,
                             keyword.note,
                             scheduledDeletionDate,
-                            keyword.ranking !== -1 ? keyword.ranking : null  // '누락'이었으면 null로 저장
+                            keyword.ranking   // ranking 값을 복사합니다.
                         ], (err) => {
                             if (err) {
                                 console.error('Error inserting deleted keyword:', err);
                                 return res.status(500).json({ error: 'Internal Server Error' });
                             }
 
-                            // 기존 registrations 테이블에서 키워드 삭제
                             const deleteQuery = `DELETE FROM registrations WHERE id = ? AND username = ?`;
                             connection.query(deleteQuery, [idToDelete, req.session.user], (err) => {
                                 if (err) {
@@ -266,7 +261,6 @@ exports.deleteKeyword = (req, res) => {
                                     return res.status(500).json({ error: 'Internal Server Error' });
                                 }
 
-                                // 슬롯 복원
                                 const restoreSlotsQuery = `
                                     UPDATE users 
                                     SET remainingSlots = remainingSlots + ? 
@@ -279,7 +273,6 @@ exports.deleteKeyword = (req, res) => {
                                         return res.status(500).json({ error: 'Internal Server Error' });
                                     }
 
-                                    // 수정 횟수 차감 로직 추가
                                     const deductEditCountQuery = `
                                         UPDATE users
                                         SET editCount = GREATEST(0, editCount - 1)
