@@ -31,7 +31,7 @@ function loadDeletedKeywords() {
 
             if (!data || data.length === 0) {
                 const row = document.createElement('tr');
-                row.innerHTML = `<td colspan="8">삭제된 키워드가 없습니다.</td>`;
+                row.innerHTML = `<td colspan="7">삭제된 키워드가 없습니다.</td>`;
                 tableBody.appendChild(row);
                 return;
             }
