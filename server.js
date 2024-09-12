@@ -145,7 +145,7 @@ cron.schedule('0 0 * * *', async () => {
 });
 
 // 크론 작업 설정 (키워드 순위 업데이트)
-cron.schedule('*/20 * * * * *', async () => {
+cron.schedule('*/5 * * * *', async () => {
     if (isUpdatingRankings) return; // 이미 실행 중이면 중단
     isUpdatingRankings = true; // 작업 시작 시 플래그 설정
 
